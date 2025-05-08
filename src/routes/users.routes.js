@@ -1,9 +1,23 @@
 const express = require('express');
 const router = express.Router();
 const { User } = require('../models');
+const { register, login } = require('../controllers/auth.controller');
 
-// Obtener todos los usuarios
-router.get('/', async (req, res) => {
+const {
+  validateUser,
+  validateLogin
+} = require('../middlewares/validators');
+const handleValidation = require('../middlewares/handleValidation');
+const authMiddleware = require('../middlewares/auth');
+
+// 🔐 Registro
+router.post('/register', validateUser, handleValidation, register);
+
+// 🔐 Login
+router.post('/login', validateLogin, handleValidation, login);
+
+// 🔒 Obtener todos los usuarios (protegido)
+router.get('/', authMiddleware, async (req, res) => {
   try {
     const users = await User.findAll();
     res.json(users);
@@ -12,8 +26,8 @@ router.get('/', async (req, res) => {
   }
 });
 
-// Obtener un usuario por ID
-router.get('/:id', async (req, res) => {
+// 🔒 Obtener un usuario por ID (protegido)
+router.get('/:id', authMiddleware, async (req, res) => {
   try {
     const user = await User.findByPk(req.params.id);
     if (!user) return res.status(404).json({ error: 'Usuario no encontrado' });
@@ -23,18 +37,8 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-// Crear un nuevo usuario
-router.post('/', async (req, res) => {
-  try {
-    const newUser = await User.create(req.body);
-    res.status(201).json(newUser);
-  } catch (err) {
-    res.status(400).json({ error: 'Error al crear usuario' });
-  }
-});
-
-// Actualizar un usuario
-router.put('/:id', async (req, res) => {
+// 🔒 Actualizar un usuario (protegido)
+router.put('/:id', authMiddleware, async (req, res) => {
   try {
     const user = await User.findByPk(req.params.id);
     if (!user) return res.status(404).json({ error: 'Usuario no encontrado' });
@@ -45,8 +49,8 @@ router.put('/:id', async (req, res) => {
   }
 });
 
-// Eliminar un usuario
-router.delete('/:id', async (req, res) => {
+// 🔒 Eliminar un usuario (protegido)
+router.delete('/:id', authMiddleware, async (req, res) => {
   try {
     const user = await User.findByPk(req.params.id);
     if (!user) return res.status(404).json({ error: 'Usuario no encontrado' });
