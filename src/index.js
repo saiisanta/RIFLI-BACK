@@ -1,28 +1,32 @@
-import express from "express";
-import morgan from "morgan";
-import sequelize from "./config/db.js";
-import bookRoutes from "./routes/books.routes.js";
-import cors from 'cors';  // Agregar al inicio del archivo
-import Book from "./models/Book.js"; // Para sincronizar
+const express = require('express');
+const morgan = require('morgan');
+const cors = require('cors');
+const { sequelize } = require('./src/models');
 
 const app = express();
-const PORT = 3000;
 
-app.use(morgan("dev"));
-app.use(cors());  // Esto habilita CORS para todas las rutas
+// 🧱 Middlewares
+app.use(cors());
 app.use(express.json());
-app.use("/api", bookRoutes);
+app.use(morgan('dev'));
 
-app.get("/", (req, res) => {
-  res.send("API de libros funcionando 📚");
-});
+// 🚦 Rutas
+const quoteRoutes = require('./src/routes/quote.routes');
+const cartRoutes = require('./src/routes/cart.routes');
+const productRoutes = require('./src/routes/product.routes');
+const serviceRoutes = require('./src/routes/service.routes');
+const userRoutes = require('./src/routes/user.routes');
 
-try {
-  await sequelize.sync();
-  console.log("📁 Base de datos sincronizada");
-  app.listen(PORT, () => {
-    console.log(`🚀 Servidor en http://localhost:${PORT}`);
-  });
-} catch (error) {
-  console.error("Error al iniciar la app:", error);
-}
+app.use('/api/quotes', quoteRoutes);
+app.use('/api/carts', cartRoutes);
+app.use('/api/products', productRoutes);
+app.use('/api/services', serviceRoutes);
+app.use('/api/users', userRoutes);
+
+// 🗃️ Conexión y sincronización de la base de datos
+sequelize.sync({ force: false })
+  .then(() => {
+    console.log('✅ Base de datos conectada y modelos sincronizados');
+    app.listen(3000, () => console.log('🚀 Servidor corriendo en puerto 3000'));
+  })
+  .catch(err => console.error('❌ Error al conectar la base de datos:', err));

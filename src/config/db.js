@@ -2,7 +2,7 @@ import { Sequelize } from "sequelize";
 
 const sequelize = new Sequelize({
   dialect: "sqlite",
-  storage: "./database/books.db"
+  storage: "./database/rifli.db"
 });
 
 export default sequelize;
