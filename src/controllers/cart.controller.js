@@ -1,34 +1,13 @@
 const { Cart } = require('../models');
 
-const getAllCarts = async () => {
-  return await Cart.findAll();
-};
-
-const getCartById = async (id) => {
-  return await Cart.findByPk(id);
-};
-
-const createCartItem = async (data) => {
-  return await Cart.create(data);
-};
-
-const updateCartItem = async (id, data) => {
-  const cartItem = await Cart.findByPk(id);
-  if (!cartItem) return null;
-  return await cartItem.update(data);
-};
-
-const deleteCartItem = async (id) => {
-  const cartItem = await Cart.findByPk(id);
-  if (!cartItem) return null;
-  await cartItem.destroy();
-  return true;
-};
-
-module.exports = {
-  getAllCarts,
-  getCartById,
-  createCartItem,
-  updateCartItem,
-  deleteCartItem,
+exports.add = async (req, res) => {
+  try {
+    const { productId, quantity } = req.body;
+    const userId = req.user.id;
+    const item = await Cart.create({ productId, quantity, userId });
+    res.json(item);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Error al agregar al carrito' });
+  }
 };

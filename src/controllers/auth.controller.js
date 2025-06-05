@@ -1,32 +1,57 @@
-const jwt = require('jsonwebtoken');
-const bcrypt = require('bcryptjs');
 const { User } = require('../models');
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+const { validationResult } = require('express-validator');
 
-const register = async (req, res) => {
+// Registro
+exports.register = async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+
+  const { name, email, password, role } = req.body;
+
   try {
-    const { name, email, password } = req.body;
-    const hashed = await bcrypt.hash(password, 10);
-    const user = await User.create({ name, email, password: hashed });
-    res.status(201).json(user);
+    const userExist = await User.findOne({ where: { email } });
+    if (userExist) return res.status(400).json({ error: 'El email ya está registrado' });
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const newUser = await User.create({
+      name,
+      email,
+      password: hashedPassword,
+      role: role || 'user'
+    });
+
+    res.status(201).json({ message: 'Usuario creado correctamente' });
   } catch (err) {
+    console.error(err);
     res.status(500).json({ error: 'Error al registrar usuario' });
   }
 };
 
-const login = async (req, res) => {
+// Login
+exports.login = async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+
+  const { email, password } = req.body;
+
   try {
-    const { email, password } = req.body;
     const user = await User.findOne({ where: { email } });
-    if (!user) return res.status(404).json({ error: 'Usuario no encontrado' });
+    if (!user) return res.status(400).json({ error: 'Credenciales incorrectas' });
 
-    const match = await bcrypt.compare(password, user.password);
-    if (!match) return res.status(401).json({ error: 'Contraseña incorrecta' });
+    const validPass = await bcrypt.compare(password, user.password);
+    if (!validPass) return res.status(400).json({ error: 'Credenciales incorrectas' });
 
-    const token = jwt.sign({ id: user.id, role: user.role }, 'RIFLI_SECRET', { expiresIn: '1h' });
+    const token = jwt.sign(
+      { id: user.id, role: user.role },
+      process.env.JWT_SECRET,
+      { expiresIn: '1d' }
+    );
+
     res.json({ token });
   } catch (err) {
-    res.status(500).json({ error: 'Error en el login' });
+    console.error(err);
+    res.status(500).json({ error: 'Error al iniciar sesión' });
   }
 };
-
-module.exports = { register, login };
