@@ -3,6 +3,7 @@ const express = require('express');
 const cors = require('cors');
 const morgan = require('morgan');
 const { sequelize } = require('./models');
+const path = require("path");
 
 const app = express();
 
@@ -16,7 +17,8 @@ app.get('/', (req, res) => {
       services: '/api/services',
       quotes: '/api/quotes',
       carts: '/api/carts',
-      users: '/api/users'
+      users: '/api/users',
+      images: '/api/images'
     }
   });
 });
@@ -35,6 +37,11 @@ app.use('/api/services', require('./routes/service.routes'));
 app.use('/api/quotes', require('./routes/quote.routes'));
 app.use('/api/carts', require('./routes/cart.routes'));
 app.use('/api/users', require('./routes/user.routes'));
+app.use(
+  "/api/images",
+  express.static(path.join(__dirname, "..", "public", "images"))
+);
+
 
 // Error handling middleware
 app.use((err, req, res, next) => {

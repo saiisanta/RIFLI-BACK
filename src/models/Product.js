@@ -7,11 +7,24 @@ const Product = sequelize.define('Product', {
     allowNull: false 
   },
   description: { 
-    type: DataTypes.STRING 
+    type: DataTypes.STRING,
+    allowNull: false 
+  },
+  imageUrl: {
+    type: DataTypes.STRING,
+    allowNull: true, // puede ser null si no subieron una imagen
   },
   price: { 
     type: DataTypes.FLOAT, 
     allowNull: false 
+  },
+  categoria: { 
+    type: DataTypes.STRING,
+    allowNull: false 
+  },
+  marca: {
+    type: DataTypes.STRING,
+    allowNull: false
   },
   stock: { 
     type: DataTypes.INTEGER, 
