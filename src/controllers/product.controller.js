@@ -7,30 +7,40 @@ exports.getAllProducts = async (req, res) => {
     const products = await Product.findAll();
     res.json(products);
   } catch (err) {
-    console.error(err);
     res.status(500).json({ error: 'Error al obtener productos' });
   }
 };
 
-// Obtener un producto por ID
+// Obtener por ID
 exports.getProductById = async (req, res) => {
   try {
     const product = await Product.findByPk(req.params.id);
     if (!product) return res.status(404).json({ error: 'Producto no encontrado' });
     res.json(product);
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Error al obtener el producto' });
+    res.status(500).json({ error: 'Error al obtener producto' });
   }
 };
 
-// Crear producto (solo admin)
+// Crear producto
 exports.createProduct = async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
 
   try {
-    const product = await Product.create(req.body);
+    const { name, description, price, categoria, marca, stock } = req.body;
+    const imageUrl = req.file ? `/api/images/${req.file.filename}` : null;
+
+    const product = await Product.create({
+      name,
+      description,
+      price: parseFloat(price),
+      categoria,
+      marca,
+      stock: parseInt(stock),
+      imageUrl
+    });
+
     res.status(201).json(product);
   } catch (err) {
     console.error(err);
@@ -40,11 +50,26 @@ exports.createProduct = async (req, res) => {
 
 // Actualizar producto
 exports.updateProduct = async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+
   try {
     const product = await Product.findByPk(req.params.id);
     if (!product) return res.status(404).json({ error: 'Producto no encontrado' });
 
-    await product.update(req.body);
+    const { name, description, price, categoria, marca, stock } = req.body;
+    const imageUrl = req.file ? `/api/images/${req.file.filename}` : product.imageUrl;
+
+    await product.update({
+      name,
+      description,
+      price: parseFloat(price),
+      categoria,
+      marca,
+      stock: parseInt(stock),
+      imageUrl
+    });
+
     res.json(product);
   } catch (err) {
     console.error(err);
@@ -61,7 +86,6 @@ exports.deleteProduct = async (req, res) => {
     await product.destroy();
     res.json({ message: 'Producto eliminado' });
   } catch (err) {
-    console.error(err);
     res.status(500).json({ error: 'Error al eliminar producto' });
   }
 };
