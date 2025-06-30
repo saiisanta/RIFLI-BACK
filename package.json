@@ -5,7 +5,8 @@
   "main": "src/index.js",
   "scripts": {
     "start": "node src/index.js",
-    "dev": "nodemon src/index.js"
+    "dev": "nodemon src/index.js",
+    "seed:users": "node src/seed/seedUsers.js"
   },
   "author": "Simon",
   "license": "ISC",
