@@ -1,0 +1,29 @@
+services:
+  backend:
+    build: ./backend
+    container_name: node_app
+    restart: always
+    env_file:
+      - .env
+      - ./backend/.env
+    environment:
+      - DB_HOST=db # Forzamos que el host sea el nombre del servicio
+    depends_on:
+      db:
+        condition: service_healthy # Solo arranca el back cuando el DB esté listo
+
+  db:
+    image: mysql:8.0
+    container_name: mysql_db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+      MYSQL_DATABASE: ${DB_NAME}
+    healthcheck:
+      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
+      timeout: 5s
+      retries: 5
+    ports:
+      - "${DB_PORT}:3306"
+    volumes:
+      - ./mysql_data:/var/lib/mysql
