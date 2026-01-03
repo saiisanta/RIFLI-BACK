@@ -1,16 +1,9 @@
-const express = require('express');
-const { body } = require('express-validator');
-const router = express.Router();
-const serviceController = require('../controllers/service.controller');
-const { authenticateToken, authorizeRole } = require('../middlewares/authMiddleware');
-const validateFields = require('../middlewares/validateFields');
+import express from 'express';
+import * as serviceController from '../controllers/service.controller.js';
+import { authenticateToken, authorizeRole } from '../middlewares/auth.middleware.js';
+import { validateService } from '../validations/service.validations.js';
 
-// Validaciones para crear/editar servicio
-const validateService = [
-  body('name').notEmpty().withMessage('El nombre es obligatorio'),
-  body('description').notEmpty().withMessage('La descripción es obligatoria'),
-  validateFields
-];
+const router = express.Router();
 
 // Rutas públicas
 router.get('/', serviceController.getAllServices);
@@ -21,4 +14,4 @@ router.post('/', authenticateToken, authorizeRole('admin'), validateService, ser
 router.put('/:id', authenticateToken, authorizeRole('admin'), validateService, serviceController.updateService);
 router.delete('/:id', authenticateToken, authorizeRole('admin'), serviceController.deleteService);
 
-module.exports = router;
+export default router;

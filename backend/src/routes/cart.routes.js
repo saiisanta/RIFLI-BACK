@@ -1,9 +1,10 @@
-const express = require('express');
+import express from 'express';
+import * as cartController from '../controllers/cart.controller.js';
+import { authenticateToken } from '../middlewares/auth.middleware.js';
+
 const router = express.Router();
-const cartController = require('../controllers/cart.controller');
-const { authenticateToken } = require('../middlewares/authMiddleware');
 
 // Crear un nuevo ítem en el carrito
 router.post('/', authenticateToken, cartController.add);
 
-module.exports = router;
+export default router;

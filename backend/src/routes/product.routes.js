@@ -1,21 +1,10 @@
-const express = require('express');
-const router = express.Router();
-const { body } = require('express-validator');
-const productController = require('../controllers/product.controller');
-const { authenticateToken, authorizeRole } = require('../middlewares/authMiddleware');
-const validateFields = require('../middlewares/validateFields');
-const upload = require('../middlewares/uploadMiddleware');
+import express from 'express';
+import * as productController from '../controllers/product.controller.js';
+import { authenticateToken, authorizeRole } from '../middlewares/auth.middleware.js';
+import upload from '../middlewares/upload.middleware.js';
+import { validateProduct } from '../validations/product.validations.js';
 
-// Validaciones para campos de texto
-const validateProduct = [
-  body('name').notEmpty().withMessage('Nombre requerido'),
-  body('description').notEmpty().withMessage('Descripción requerida'),
-  body('categoria').notEmpty().withMessage('Categoría requerida'),
-  body('marca').notEmpty().withMessage('Marca requerida'),
-  body('price').isFloat({ min: 0 }).withMessage('Precio inválido'),
-  body('stock').isInt({ min: 0 }).withMessage('Stock inválido'),
-  validateFields
-];
+const router = express.Router();
 
 // Rutas públicas
 router.get('/', productController.getAllProducts);
@@ -42,4 +31,4 @@ router.put(
 
 router.delete('/:id', authenticateToken, authorizeRole('admin'), productController.deleteProduct);
 
-module.exports = router;
+export default router;

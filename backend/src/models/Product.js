@@ -1,5 +1,5 @@
-const { DataTypes } = require('sequelize');
-const sequelize = require('../config/db');
+import { DataTypes } from 'sequelize';
+import sequelize from '../config/db.js';
 
 const Product = sequelize.define('Product', {
   name: { 
@@ -7,15 +7,15 @@ const Product = sequelize.define('Product', {
     allowNull: false 
   },
   description: { 
-    type: DataTypes.STRING,
+    type: DataTypes.TEXT, // TEXT es mejor para descripciones largas
     allowNull: false 
   },
   imageUrl: {
     type: DataTypes.STRING,
-    allowNull: true, // puede ser null si no subieron una imagen
+    allowNull: true
   },
   price: { 
-    type: DataTypes.FLOAT, 
+    type: DataTypes.DECIMAL(10, 2), // Mejor para precios (evita problemas de redondeo)
     allowNull: false 
   },
   categoria: { 
@@ -30,6 +30,9 @@ const Product = sequelize.define('Product', {
     type: DataTypes.INTEGER, 
     defaultValue: 0 
   }
+}, {
+  tableName: 'products',
+  timestamps: true
 });
 
-module.exports = Product;
+export default Product;

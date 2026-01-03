@@ -1,7 +1,9 @@
-const jwt = require('jsonwebtoken');
-require('dotenv').config();
+import jwt from 'jsonwebtoken';
+import dotenv from 'dotenv';
 
-exports.authenticateToken = (req, res, next) => {
+dotenv.config();
+
+export const authenticateToken = (req, res, next) => {
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1];
   
@@ -14,7 +16,7 @@ exports.authenticateToken = (req, res, next) => {
   });
 };
 
-exports.authorizeRole = (role) => (req, res, next) => {
+export const authorizeRole = (role) => (req, res, next) => {
   if (req.user.role !== role) {
     return res.status(403).json({ error: 'Acceso denegado' });
   }

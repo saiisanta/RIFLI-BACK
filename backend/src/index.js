@@ -1,13 +1,30 @@
-require('dotenv').config();
-const express = require('express');
-const cors = require('cors');
-const morgan = require('morgan');
-const { sequelize } = require('./models');
-const path = require("path");
+import dotenv from 'dotenv';
+import express from 'express';
+import cors from 'cors';
+import morgan from 'morgan';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+
+// Recrear __dirname para ES Modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+dotenv.config();
+
+import { sequelize } from './models/index.js';
+
+// Importar Rutas
+import authRoutes from './routes/auth.routes.js';
+import productRoutes from './routes/product.routes.js';
+import serviceRoutes from './routes/service.routes.js';
+import quoteRoutes from './routes/quote.routes.js';
+import cartRoutes from './routes/cart.routes.js';
+import userRoutes from './routes/user.routes.js';
 
 const app = express();
 
-// Add this before the error handling middleware
+// Ruta principal
 app.get('/', (req, res) => {
   res.json({
     message: 'Welcome to the TPI API',
@@ -23,7 +40,6 @@ app.get('/', (req, res) => {
   });
 });
 
-
 // Middlewares
 app.use(cors());
 app.use(morgan('dev'));
@@ -31,27 +47,26 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Rutas
-app.use('/api/auth', require('./routes/auth.routes'));
-app.use('/api/products', require('./routes/product.routes'));
-app.use('/api/services', require('./routes/service.routes'));
-app.use('/api/quotes', require('./routes/quote.routes'));
-app.use('/api/carts', require('./routes/cart.routes'));
-app.use('/api/users', require('./routes/user.routes'));
+app.use('/api/auth', authRoutes);
+app.use('/api/products', productRoutes);
+app.use('/api/services', serviceRoutes);
+app.use('/api/quotes', quoteRoutes);
+app.use('/api/carts', cartRoutes);
+app.use('/api/users', userRoutes);
 app.use(
   "/api/images",
   express.static(path.join(__dirname, "..", "public", "images"))
 );
 
-
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error(err.stack);
-  res.status(500).json({ error: 'Something went wrong!' });
+  res.status(500).json({ error: 'Algo salió mal!' });
 });
 
-const PORT = process.env.PORT || 4000;
+const PORT = process.env.PORT || 4001;
 
-sequelize.sync({ force: false, alter: true })
+sequelize.sync({ force: false, alter: false })
   .then(() => {
     console.log('✅ Base de datos conectada');
     app.listen(PORT, () => {
@@ -59,5 +74,5 @@ sequelize.sync({ force: false, alter: true })
     });
   })
   .catch(err => {
-    console.error('Unable to connect to the database:', err);
+    console.error('❌ Error conectando a la base de datos:', err);
   });

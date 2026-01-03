@@ -1,8 +1,8 @@
-const { Product } = require('../models');
-const { validationResult } = require('express-validator');
+import Product from '../models/Product.js';
+import { validationResult } from 'express-validator';
 
 // Obtener todos los productos
-exports.getAllProducts = async (req, res) => {
+export const getAllProducts = async (req, res) => {
   try {
     const products = await Product.findAll();
     res.json(products);
@@ -12,7 +12,7 @@ exports.getAllProducts = async (req, res) => {
 };
 
 // Obtener por ID
-exports.getProductById = async (req, res) => {
+export const getProductById = async (req, res) => {
   try {
     const product = await Product.findByPk(req.params.id);
     if (!product) return res.status(404).json({ error: 'Producto no encontrado' });
@@ -23,7 +23,7 @@ exports.getProductById = async (req, res) => {
 };
 
 // Crear producto
-exports.createProduct = async (req, res) => {
+export const createProduct = async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
 
@@ -49,7 +49,7 @@ exports.createProduct = async (req, res) => {
 };
 
 // Actualizar producto
-exports.updateProduct = async (req, res) => {
+export const updateProduct = async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
 
@@ -78,7 +78,7 @@ exports.updateProduct = async (req, res) => {
 };
 
 // Eliminar producto
-exports.deleteProduct = async (req, res) => {
+export const deleteProduct = async (req, res) => {
   try {
     const product = await Product.findByPk(req.params.id);
     if (!product) return res.status(404).json({ error: 'Producto no encontrado' });

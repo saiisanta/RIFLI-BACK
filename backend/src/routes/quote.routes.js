@@ -1,16 +1,9 @@
-const express = require('express');
-const { body } = require('express-validator');
-const router = express.Router();
-const quoteController = require('../controllers/quote.controller');
-const { authenticateToken, authorizeRole } = require('../middlewares/authMiddleware');
-const validateFields = require('../middlewares/validateFields');
+import express from 'express';
+import * as quoteController from '../controllers/quote.controller.js';
+import { authenticateToken, authorizeRole } from '../middlewares/auth.middleware.js';
+import { validateQuote } from '../validations/quote.validations.js';
 
-// Validaciones
-const validateQuote = [
-  body('serviceId').isInt().withMessage('Debe ser un ID de servicio válido'),
-  body('details').notEmpty().withMessage('Debe ingresar detalles'),
-  validateFields
-];
+const router = express.Router();
 
 // Rutas protegidas
 router.get('/', authenticateToken, authorizeRole('admin'), quoteController.getAllQuotes);
@@ -19,4 +12,4 @@ router.post('/', authenticateToken, validateQuote, quoteController.createQuote);
 router.put('/:id/status', authenticateToken, authorizeRole('admin'), quoteController.updateQuoteStatus);
 router.delete('/:id', authenticateToken, quoteController.deleteQuote);
 
-module.exports = router;
+export default router;

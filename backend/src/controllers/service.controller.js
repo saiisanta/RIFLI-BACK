@@ -1,8 +1,8 @@
-const { Service } = require('../models');
-const { validationResult } = require('express-validator');
+import Service from '../models/Service.js';
+import { validationResult } from 'express-validator';
 
 // Obtener todos los servicios
-exports.getAllServices = async (req, res) => {
+export const getAllServices = async (req, res) => {
   try {
     const services = await Service.findAll();
     res.json(services);
@@ -13,7 +13,7 @@ exports.getAllServices = async (req, res) => {
 };
 
 // Obtener un servicio por ID
-exports.getServiceById = async (req, res) => {
+export const getServiceById = async (req, res) => {
   try {
     const service = await Service.findByPk(req.params.id);
     if (!service) return res.status(404).json({ error: 'Servicio no encontrado' });
@@ -25,7 +25,7 @@ exports.getServiceById = async (req, res) => {
 };
 
 // Crear un servicio (admin)
-exports.createService = async (req, res) => {
+export const createService = async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
 
@@ -39,7 +39,7 @@ exports.createService = async (req, res) => {
 };
 
 // Actualizar un servicio
-exports.updateService = async (req, res) => {
+export const updateService = async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
 
@@ -56,7 +56,7 @@ exports.updateService = async (req, res) => {
 };
 
 // Eliminar un servicio
-exports.deleteService = async (req, res) => {
+export const deleteService = async (req, res) => {
   try {
     const service = await Service.findByPk(req.params.id);
     if (!service) return res.status(404).json({ error: 'Servicio no encontrado' });

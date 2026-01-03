@@ -1,8 +1,10 @@
-const { Quote, Service, User } = require('../models');
-const { validationResult } = require('express-validator');
+import Quote from '../models/Quote.js';
+import Service from '../models/Service.js';
+import User from '../models/User.js';
+import { validationResult } from 'express-validator';
 
 // Obtener todas las solicitudes (solo admin)
-exports.getAllQuotes = async (req, res) => {
+export const getAllQuotes = async (req, res) => {
   try {
     const quotes = await Quote.findAll({
       include: [Service, User]
@@ -15,7 +17,7 @@ exports.getAllQuotes = async (req, res) => {
 };
 
 // Obtener solicitud por ID (admin o dueño)
-exports.getQuoteById = async (req, res) => {
+export const getQuoteById = async (req, res) => {
   try {
     const quote = await Quote.findByPk(req.params.id, {
       include: [Service, User]
@@ -35,7 +37,7 @@ exports.getQuoteById = async (req, res) => {
 };
 
 // Crear solicitud (usuario logueado)
-exports.createQuote = async (req, res) => {
+export const createQuote = async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
 
@@ -54,7 +56,7 @@ exports.createQuote = async (req, res) => {
 };
 
 // Actualizar estado (solo admin)
-exports.updateQuoteStatus = async (req, res) => {
+export const updateQuoteStatus = async (req, res) => {
   try {
     const quote = await Quote.findByPk(req.params.id);
     if (!quote) return res.status(404).json({ error: 'Presupuesto no encontrado' });
@@ -70,7 +72,7 @@ exports.updateQuoteStatus = async (req, res) => {
 };
 
 // Eliminar presupuesto (usuario dueño o admin)
-exports.deleteQuote = async (req, res) => {
+export const deleteQuote = async (req, res) => {
   try {
     const quote = await Quote.findByPk(req.params.id);
     if (!quote) return res.status(404).json({ error: 'Presupuesto no encontrado' });

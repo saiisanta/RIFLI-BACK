@@ -1,25 +1,25 @@
-const sequelize = require('../config/db');
+import sequelize from '../config/db.js';
 
-const User = require('./User');
-const Product = require('./Product');
-const Service = require('./Service');
-const Quote = require('./Quote');
-const Cart = require('./Cart');
+import User from './User.js';
+import Product from './Product.js';
+import Service from './Service.js';
+import Quote from './Quote.js';
+import Cart from './Cart.js';
 
 // Relaciones
-User.hasMany(Quote);
-Quote.belongsTo(User);
+User.hasMany(Quote, { foreignKey: 'userId' });
+Quote.belongsTo(User, { foreignKey: 'userId' });
 
-Service.hasMany(Quote);
-Quote.belongsTo(Service);
+Service.hasMany(Quote, { foreignKey: 'serviceId' });
+Quote.belongsTo(Service, { foreignKey: 'serviceId' });
 
-User.hasMany(Cart);
-Cart.belongsTo(User);
+User.hasMany(Cart, { foreignKey: 'userId' });
+Cart.belongsTo(User, { foreignKey: 'userId' });
 
-Product.hasMany(Cart);
-Cart.belongsTo(Product);
+Product.hasMany(Cart, { foreignKey: 'productId' });
+Cart.belongsTo(Product, { foreignKey: 'productId' });
 
-module.exports = { 
+export { 
   sequelize, 
   User, 
   Product, 

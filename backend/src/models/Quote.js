@@ -1,9 +1,9 @@
-const { DataTypes } = require('sequelize');
-const sequelize = require('../config/db');
+import { DataTypes } from 'sequelize';
+import sequelize from '../config/db.js';
 
 const Quote = sequelize.define('Quote', {
   details: { 
-    type: DataTypes.STRING, 
+    type: DataTypes.TEXT,
     allowNull: false 
   },
   status: { 
@@ -13,6 +13,9 @@ const Quote = sequelize.define('Quote', {
       isIn: [['pending', 'approved', 'rejected']]
     }
   }
+}, {
+  tableName: 'quotes',
+  timestamps: true
 });
 
-module.exports = Quote;
+export default Quote;
