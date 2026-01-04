@@ -29,7 +29,7 @@ export const createProduct = async (req, res) => {
 
   try {
     const { name, description, price, categoria, marca, stock } = req.body;
-    const imageUrl = req.file ? `/api/images/${req.file.filename}` : null;
+    const imageUrl = req.file ? `./images/${req.file.filename}` : null;
 
     const product = await Product.create({
       name,
