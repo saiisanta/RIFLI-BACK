@@ -7,7 +7,7 @@ const Product = sequelize.define('Product', {
     allowNull: false 
   },
   description: { 
-    type: DataTypes.TEXT, // TEXT es mejor para descripciones largas
+    type: DataTypes.TEXT, 
     allowNull: false 
   },
   imageUrl: {
@@ -15,7 +15,7 @@ const Product = sequelize.define('Product', {
     allowNull: true
   },
   price: { 
-    type: DataTypes.DECIMAL(10, 2), // Mejor para precios (evita problemas de redondeo)
+    type: DataTypes.DECIMAL(10, 2), 
     allowNull: false 
   },
   categoria: { 

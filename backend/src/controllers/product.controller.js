@@ -34,7 +34,7 @@ export const createProduct = async (req, res) => {
     const product = await Product.create({
       name,
       description,
-      price: parseFloat(price),
+      price: parseFloat(price).toFixed(2),
       categoria,
       marca,
       stock: parseInt(stock),

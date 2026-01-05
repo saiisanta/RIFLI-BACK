@@ -6,20 +6,24 @@ import User from '../models/User.js';
 // Registro
 export const register = async (req, res) => {
   const errors = validationResult(req);
-  if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() }); 
+  }
 
-  const { name, email, password, role } = req.body;
+  const { name, email, password } = req.body;
 
   try {
     const userExist = await User.findOne({ where: { email } });
-    if (userExist) return res.status(400).json({ error: 'El email ya está registrado' });
+    if (userExist) {
+      return res.status(400).json({ error: 'El email ya está registrado' });
+    }
 
     const hashedPassword = await bcrypt.hash(password, 10);
     const newUser = await User.create({
       name,
       email,
       password: hashedPassword,
-      role: role || 'user'
+      role: 'user' 
     });
 
     res.status(201).json({ message: 'Usuario creado correctamente' });
