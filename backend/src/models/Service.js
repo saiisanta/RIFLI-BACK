@@ -10,7 +10,9 @@ const Service = sequelize.define('Service', {
     type: DataTypes.TEXT
   }
 }, {
-  tableName: 'services',
+  // Local Table
+  // tableName: 'services',
+  tableName: 'Services',
   timestamps: true
 });
 

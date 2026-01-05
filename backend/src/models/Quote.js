@@ -14,7 +14,9 @@ const Quote = sequelize.define('Quote', {
     }
   }
 }, {
-  tableName: 'quotes',
+  // Local Table
+  // tableName: 'quotes',
+  tableName: 'Quotes',
   timestamps: true
 });
 
