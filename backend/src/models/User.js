@@ -1,6 +1,3 @@
-import { DataTypes } from 'sequelize';
-import sequelize from '../config/db.js';
-
 const User = sequelize.define('User', {
   name: { 
     type: DataTypes.STRING, 
@@ -24,12 +21,16 @@ const User = sequelize.define('User', {
     validate: {
       isIn: [['user', 'admin']]
     }
+  },
+  resetPasswordToken: {
+    type: DataTypes.STRING,
+    allowNull: true
+  },
+  resetPasswordExpires: {
+    type: DataTypes.DATE,
+    allowNull: true
   }
 }, {
-  // Local Table
-  // tableName: 'users',
-  tableName: 'Users',
+  tableName: 'users',
   timestamps: true
 });
-
-export default User;
