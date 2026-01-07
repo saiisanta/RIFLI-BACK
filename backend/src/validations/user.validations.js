@@ -1,6 +1,6 @@
 // validations/user.validations.js
 import { body } from 'express-validator';
-import { validateFields } from '../middlewares/validateFields.js';
+import validateFields from '../middlewares/validateFields.middleware.js';
 
 export const validateChangePassword = [
   body('currentPassword')

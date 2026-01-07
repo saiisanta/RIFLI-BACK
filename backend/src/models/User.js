@@ -1,3 +1,6 @@
+import { DataTypes } from 'sequelize';
+import sequelize from '../config/db.js';
+
 const User = sequelize.define('User', {
   name: { 
     type: DataTypes.STRING, 
@@ -31,6 +34,10 @@ const User = sequelize.define('User', {
     allowNull: true
   }
 }, {
-  tableName: 'users',
+  // Local Table
+  // tableName: 'users',
+  tableName: 'Users',
   timestamps: true
 });
+
+export default User;

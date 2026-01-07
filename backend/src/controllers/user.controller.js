@@ -3,8 +3,8 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto'; // Para tokens de reseteo
 import { validationResult } from 'express-validator';
-
-// ============ YA TENÉS (mejorados) ============
+import { sendPasswordResetEmail } from '../services/email.service.js';
+import { Op } from 'sequelize';
 
 // Obtener todos los usuarios (solo admins)
 export const getAllUsers = async (req, res) => {
@@ -203,9 +203,11 @@ export const requestPasswordReset = async (req, res) => {
     return res.status(400).json({ errors: errors.array() });
   }
 
+  let user; // ← Declarar ANTES del try para usarla en el catch
+
   try {
     const { email } = req.body;
-    const user = await User.findOne({ where: { email } });
+    user = await User.findOne({ where: { email } }); // ← Asignar sin 'const'
 
     // Por seguridad, siempre devolver el mismo mensaje
     if (!user) {
@@ -214,26 +216,34 @@ export const requestPasswordReset = async (req, res) => {
       });
     }
 
-    // Generar token de reseteo
+    // Generar token
     const resetToken = crypto.randomBytes(32).toString('hex');
     const resetTokenHash = crypto.createHash('sha256').update(resetToken).digest('hex');
 
-    // Guardar token en la base de datos (necesitás agregar estos campos al modelo)
+    // Guardar en DB
     user.resetPasswordToken = resetTokenHash;
     user.resetPasswordExpires = Date.now() + 3600000; // 1 hora
     await user.save();
 
-    // TODO: Enviar email con el token
-    // const resetUrl = `http://localhost:5173/reset-password/${resetToken}`;
-    // await sendEmail({ to: email, subject: 'Reset Password', resetUrl });
-
-    console.log('Reset token:', resetToken); // Para testing (eliminá en producción)
+    // Enviar email
+    await sendPasswordResetEmail({
+      to: email,
+      resetToken: resetToken
+    });
 
     res.json({ 
       message: 'Si el email existe, recibirás un enlace de recuperación' 
     });
   } catch (error) {
     console.error(error);
+    
+    // Ahora 'user' está disponible acá
+    if (user) {
+      user.resetPasswordToken = null;
+      user.resetPasswordExpires = null;
+      await user.save();
+    }
+    
     res.status(500).json({ error: 'Error al procesar la solicitud' });
   }
 };
