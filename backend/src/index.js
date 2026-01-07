@@ -5,6 +5,7 @@ import morgan from 'morgan';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
+import cookieParser from 'cookie-parser';
 
 // Recrear __dirname para ES Modules
 const __filename = fileURLToPath(import.meta.url);
@@ -41,7 +42,11 @@ app.get('/', (req, res) => {
 });
 
 // Middlewares
-app.use(cors());
+app.use(cors({
+  origin: 'http://localhost:5173', // frontend
+  credentials: true // permite enviar cookies
+}));
+app.use(cookieParser());
 app.use(morgan('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));

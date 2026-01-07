@@ -53,7 +53,23 @@ export const login = async (req, res) => {
       { expiresIn: '1d' }
     );
 
-    res.json({ token });
+    // Guardar en cookie HttpOnly 
+    res.cookie('token', token, {
+      httpOnly: true,      // No accesible desde JavaScript (protege contra XSS)
+      secure: process.env.NODE_ENV === 'production', // Solo HTTPS en producción
+      sameSite: 'strict',  // Protege contra CSRF
+      maxAge: 24 * 60 * 60 * 1000 // 1 día en milisegundos
+    });
+
+    res.json({ 
+      message: 'Login exitoso',
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role
+      }
+    });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Error al iniciar sesión' });

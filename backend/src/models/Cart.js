@@ -8,7 +8,9 @@ const Cart = sequelize.define('Cart', {
     allowNull: false
   }
 }, {
-  tableName: 'carts',
+  tableName: 'Carts',
+  // Local Table
+  // tableName: 'carts',
   timestamps: true
 });
 
