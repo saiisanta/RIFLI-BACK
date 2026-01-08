@@ -30,3 +30,11 @@ export const validateLogin = [
   body('password').notEmpty().withMessage('Contraseña requerida'),
   validateFields
 ];
+
+export const validateVerifyEmail = [
+  param('token')
+    .isHexadecimal()
+    .isLength({ min: 64, max: 64 })
+    .withMessage('Token de verificación inválido'),
+  validateFields
+];

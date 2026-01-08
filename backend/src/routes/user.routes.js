@@ -13,6 +13,7 @@ import {
   resetPassword,
   deleteOwnAccount
 } from '../controllers/user.controller.js';
+import { validateId } from '../validations/id.validation.js';
 import {
   validateUpdateProfile,
   validateChangePassword,
@@ -36,8 +37,8 @@ router.delete('/me', authenticateToken, validateDeleteAccount, deleteOwnAccount)
 
 // ========== Rutas de admin ==========
 router.get('/', authenticateToken, authorizeRole('admin'), getAllUsers);
-router.get('/:id', authenticateToken, authorizeRole('admin'), getUserById);
+router.get('/:id', authenticateToken, authorizeRole('admin'), validateId, getUserById);
 router.put('/:id/role', authenticateToken, authorizeRole('admin'), validateChangeRole, changeRole);
-router.delete('/:id', authenticateToken, authorizeRole('admin'), deleteUser);
+router.delete('/:id', authenticateToken, authorizeRole('admin'), validateId, deleteUser);
 
 export default router;

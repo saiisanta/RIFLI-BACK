@@ -24,7 +24,7 @@ export const getAllUsers = async (req, res) => {
 export const getProfile = async (req, res) => {
   try {
     const user = await User.findByPk(req.user.id, {
-      attributes: { exclude: ['password'] }
+      attributes: { exclude: ['password', 'verificationToken', 'verificationTokenExpires', 'resetPasswordToken', 'resetPasswordExpires'] }
     });
     
     if (!user) {
