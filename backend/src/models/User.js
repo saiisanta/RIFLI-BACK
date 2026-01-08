@@ -25,14 +25,28 @@ const User = sequelize.define('User', {
       isIn: [['user', 'admin']]
     }
   },
+  // Campos Verificación
+  isVerified: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false
+  },
+  verificationToken: {
+    type: DataTypes.STRING,
+    allowNull: true
+  },
+  verificationTokenExpires: {
+    type: DataTypes.BIGINT,
+    allowNull: true
+  },
+  // Campos Recuperación de Contraseña
   resetPasswordToken: {
     type: DataTypes.STRING,
     allowNull: true
   },
   resetPasswordExpires: {
-    type: DataTypes.DATE,
+    type: DataTypes.BIGINT, 
     allowNull: true
-  }
+  },
 }, {
   // Local Table
   // tableName: 'users',

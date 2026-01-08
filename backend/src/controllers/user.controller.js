@@ -203,8 +203,7 @@ export const requestPasswordReset = async (req, res) => {
     return res.status(400).json({ errors: errors.array() });
   }
 
-  let user; // ← Declarar ANTES del try para usarla en el catch
-
+  let user;
   try {
     const { email } = req.body;
     user = await User.findOne({ where: { email } }); // ← Asignar sin 'const'
@@ -221,8 +220,9 @@ export const requestPasswordReset = async (req, res) => {
     const resetTokenHash = crypto.createHash('sha256').update(resetToken).digest('hex');
 
     // Guardar en DB
+    const expirationTime = Date.now() + (1 * 60 * 60 * 1000);
     user.resetPasswordToken = resetTokenHash;
-    user.resetPasswordExpires = Date.now() + 3600000; // 1 hora
+    user.resetPasswordExpires = expirationTime; 
     await user.save();
 
     // Enviar email
@@ -256,21 +256,27 @@ export const resetPassword = async (req, res) => {
   }
 
   try {
-    const { token, newPassword } = req.body;
+    const { token } = req.params;
+    const { newPassword } = req.body;
 
-    // Hashear el token para comparar
-    const resetTokenHash = crypto.createHash('sha256').update(token).digest('hex');
+    // Hashear el token
+    const resetTokenHash = crypto
+      .createHash('sha256')
+      .update(token)
+      .digest('hex');
 
-    // Buscar usuario con token válido y no expirado
+    // Buscar usuario
     const user = await User.findOne({
       where: {
         resetPasswordToken: resetTokenHash,
-        resetPasswordExpires: { [Op.gt]: Date.now() } // Sequelize operator
+        resetPasswordExpires: { [Op.gt]: Date.now() }
       }
     });
 
     if (!user) {
-      return res.status(400).json({ error: 'Token inválido o expirado' });
+      return res.status(400).json({ 
+        error: 'Token inválido o expirado. Solicitá uno nuevo.' 
+      });
     }
 
     // Actualizar contraseña

@@ -26,7 +26,7 @@ const router = express.Router();
 
 // ========== Rutas públicas ==========
 router.post('/request-reset', validateRequestReset, requestPasswordReset);
-router.post('/reset-password', validateResetPassword, resetPassword);
+router.post('/reset-password/:token', validateResetPassword,resetPassword);
 
 // ========== Rutas del usuario autenticado ==========
 router.get('/me', authenticateToken, getProfile);

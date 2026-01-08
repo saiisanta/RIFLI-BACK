@@ -20,8 +20,6 @@ export const validateRequestReset = [
 ];
 
 export const validateResetPassword = [
-  body('token')
-    .notEmpty().withMessage('Token requerido'),
   body('newPassword')
     .isLength({ min: 8 }).withMessage('La contraseña debe tener al menos 8 caracteres')
     .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#])/)
