@@ -1,5 +1,6 @@
 import { body } from 'express-validator'
 import validateFields from '../middlewares/validateFields.middleware.js';
+import { param } from 'express-validator';
 
 // Validaciones
 export const validateRegister = [
