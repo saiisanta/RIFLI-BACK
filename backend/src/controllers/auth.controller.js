@@ -96,7 +96,7 @@ export const verifyEmail = async (req, res) => {
     await user.save();
 
     res.json({ 
-      message: '✅ Email verificado correctamente. Ya podés iniciar sesión.' 
+      message: 'Email verificado correctamente. Ya podés iniciar sesión.' 
     });
   } catch (error) {
     console.error(error);
