@@ -5,7 +5,7 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 
 // Mail de recuperación de contraseña 
 export const sendPasswordResetEmail = async ({ to, resetToken }) => {
-  const resetUrl = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
+  const resetUrl = `${process.env.FRONTEND_URL}reset-password/${resetToken}`;
 
   try {
     const { data, error } = await resend.emails.send({
@@ -113,7 +113,7 @@ export const sendPasswordResetEmail = async ({ to, resetToken }) => {
 
 // Mail de verificación de email
 export const sendVerificationEmail = async ({ to, verificationToken, userName }) => {
-  const verificationUrl = `${process.env.FRONTEND_URL}/verify-email/${verificationToken}`;
+  const verificationUrl = `${process.env.FRONTEND_URL}verify-email/${verificationToken}`;
 
   try {
     const { data, error } = await resend.emails.send({
