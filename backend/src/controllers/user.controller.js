@@ -10,8 +10,8 @@ import { Op } from 'sequelize';
 export const getAllUsers = async (req, res) => {
   try {
     const users = await User.findAll({
-      attributes: { exclude: ['password'] },
-      order: [['created_at', 'DESC']] // Más recientes primero
+      attributes: { exclude: ['password', 'verification_token', 'verification_token_expires', 'reset_password_token', 'reset_password_expires'] },
+      order: [['created_at', 'DESC']]
     });
     res.json(users);
   } catch (error) {
@@ -26,11 +26,11 @@ export const getProfile = async (req, res) => {
     const user = await User.findByPk(req.user.id, {
       attributes: { exclude: ['password', 'verification_token', 'verification_token_expires', 'reset_password_token', 'reset_password_expires'] }
     });
-    
+
     if (!user) {
       return res.status(404).json({ error: 'Usuario no encontrado' });
     }
-    
+
     res.json(user);
   } catch (error) {
     console.error(error);
@@ -43,13 +43,13 @@ export const getUserById = async (req, res) => {
   try {
     const { id } = req.params;
     const user = await User.findByPk(id, {
-      attributes: { exclude: ['password'] }
+      attributes: { exclude: ['password', 'verification_token', 'verification_token_expires', 'reset_password_token', 'reset_password_expires'] }
     });
-    
+
     if (!user) {
       return res.status(404).json({ error: 'Usuario no encontrado' });
     }
-    
+
     res.json(user);
   } catch (error) {
     console.error(error);
@@ -70,7 +70,7 @@ export const updateProfile = async (req, res) => {
       return res.status(404).json({ error: 'Usuario no encontrado' });
     }
 
- const { first_name, last_name, email, phone, avatar_url } = req.body;
+  const { first_name, last_name, email, phone, avatar_url, document_type, document_number } = req.body;
 
     if (email && email !== user.email) {
       const emailExists = await User.findOne({ where: { email } });
@@ -79,11 +79,20 @@ export const updateProfile = async (req, res) => {
       }
     }
 
+    if (document_number && document_number !== user.document_number) {
+      const docExists = await User.findOne({ where: { document_number } });
+      if (docExists) {
+        return res.status(400).json({ error: 'El número de documento ya está en uso' });
+      }
+    }
+
     user.first_name = first_name || user.first_name;
     user.last_name = last_name || user.last_name;
     user.email = email || user.email;
     user.phone = phone !== undefined ? phone : user.phone;
     user.avatar_url = avatar_url !== undefined ? avatar_url : user.avatar_url;
+    user.document_type = document_type !== undefined ? document_type : user.document_type;
+    user.document_number = document_number !== undefined ? document_number : user.document_number;
     await user.save();
 
     res.json({
@@ -95,6 +104,8 @@ export const updateProfile = async (req, res) => {
         email: user.email,
         phone: user.phone,
         avatar_url: user.avatar_url,
+        document_type: user.document_type,
+        document_number: user.document_number,
         role: user.role
       }
     });
@@ -135,6 +146,8 @@ res.json({
         first_name: user.first_name,
         last_name: user.last_name,
         email: user.email,
+        document_type: user.document_type,
+        document_number: user.document_number,
         role: user.role
       }
     });

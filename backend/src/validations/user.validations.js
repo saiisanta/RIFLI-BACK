@@ -50,6 +50,27 @@ export const validateUpdateProfile = [
     .optional()
     .trim()
     .isURL().withMessage('URL de avatar inválida'),
+  body('document_type')
+    .optional()
+    .isIn(['DNI', 'CUIL', 'CUIT']).withMessage('El tipo de documento debe ser DNI, CUIL o CUIT'),
+  body('document_number')
+    .optional()
+    .trim()
+    .custom((value, { req }) => {
+      const docType = req.body.document_type;
+
+      if (docType === 'DNI') {
+        if (!/^[0-9]{7,8}$/.test(value)) {
+          throw new Error('El DNI debe tener entre 7 y 8 dígitos');
+        }
+      } else if (docType === 'CUIL' || docType === 'CUIT') {
+        if (!/^[0-9]{11}$/.test(value)) {
+          throw new Error('El CUIL/CUIT debe tener 11 dígitos');
+        }
+      }
+
+      return true;
+    }),
   validateFields
 ];
 
