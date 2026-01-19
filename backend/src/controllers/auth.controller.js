@@ -14,7 +14,7 @@ export const register = async (req, res) => {
     return res.status(400).json({ errors: errors.array() }); 
   }
 
- const { first_name, last_name, document_type, document_number, email, password, phone } = req.body;
+ const { first_name, last_name, email, password, phone } = req.body;
   let user;
 
   try {
@@ -23,10 +23,10 @@ export const register = async (req, res) => {
       return res.status(400).json({ error: 'El email ya está registrado' });
     }
 
-    const documentExists = await User.findOne({ where: { document_number: document_number } });
-    if (documentExists) {
-      return res.status(400).json({ error: 'El número de documento ya está registrado' });
-    }
+    // const documentExists = await User.findOne({ where: { document_number: document_number } });
+    // if (documentExists) {
+    //   return res.status(400).json({ error: 'El número de documento ya está registrado' });
+    // }
 
     const verificationToken = crypto.randomBytes(32).toString('hex');
     const verificationTokenHash = crypto
@@ -38,8 +38,8 @@ export const register = async (req, res) => {
     user = await User.create({
       first_name,
       last_name,
-      document_type,
-      document_number,
+      // document_type,
+      // document_number,
       email,
       password: hashedPassword,
       phone,

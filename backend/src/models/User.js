@@ -18,12 +18,12 @@ const User = sequelize.define('User', {
   // Documentación (Argentina)
   document_type: {
     type: DataTypes.ENUM('DNI', 'CUIL', 'CUIT'),
-    allowNull: false,
+    allowNull: true,
     defaultValue: 'DNI'
   },
   document_number: {
     type: DataTypes.STRING(20),
-    allowNull: false,
+    allowNull: true,
     unique: true,
     validate: {
       // Validar formato DNI argentino (7-8 dígitos)

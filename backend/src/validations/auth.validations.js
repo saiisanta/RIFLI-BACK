@@ -15,15 +15,15 @@ export const validateRegister = [
     .isLength({ min: 2, max: 100 }).withMessage('El apellido debe tener entre 2 y 100 caracteres')
     .matches(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/).withMessage('El apellido solo puede contener letras'),
 
-  body('document_type')
-    .trim()
-    .notEmpty().withMessage('Tipo de documento requerido')
-    .isIn(['DNI', 'CUIL', 'CUIT']).withMessage('Tipo de documento inválido'),
+  // body('document_type')
+  //   .trim()
+  //   .notEmpty().withMessage('Tipo de documento requerido')
+  //   .isIn(['DNI', 'CUIL', 'CUIT']).withMessage('Tipo de documento inválido'),
 
-  body('document_number')
-    .trim()
-    .notEmpty().withMessage('Número de documento requerido')
-    .matches(/^[0-9]{7,8}$/).withMessage('El número de documento debe tener 7 u 8 dígitos'),
+  // body('document_number')
+  //   .trim()
+  //   .notEmpty().withMessage('Número de documento requerido')
+  //   .matches(/^[0-9]{7,8}$/).withMessage('El número de documento debe tener 7 u 8 dígitos'),
 
   body('email')
     .trim()
