@@ -71,7 +71,7 @@ app.use((err, req, res, next) => {
 
 const PORT = process.env.PORT || 4001;
 
-sequelize.sync({ force: false, alter: false })
+sequelize.sync({ force: true})
   .then(() => {
     console.log('✅ Base de datos conectada');
     app.listen(PORT, () => {

@@ -14,7 +14,7 @@ export const register = async (req, res) => {
     return res.status(400).json({ errors: errors.array() }); 
   }
 
-  const { name, email, password } = req.body;
+const { firstName, lastName, documentType, documentNumber, email, password, phone } = req.body;
   let user;
 
   try {
@@ -23,7 +23,11 @@ export const register = async (req, res) => {
       return res.status(400).json({ error: 'El email ya está registrado' });
     }
 
-    // Generar token de verificación
+    const documentExists = await User.findOne({ where: { documentNumber } });
+    if (documentExists) {
+      return res.status(400).json({ error: 'El número de documento ya está registrado' });
+    }
+
     const verificationToken = crypto.randomBytes(32).toString('hex');
     const verificationTokenHash = crypto
       .createHash('sha256')
@@ -32,20 +36,23 @@ export const register = async (req, res) => {
 
     const hashedPassword = await bcrypt.hash(password, 10);
     user = await User.create({
-      name,
+      firstName,
+      lastName,
+      documentType,
+      documentNumber,
       email,
       password: hashedPassword,
-      role: 'user',
+      phone,
+      role: 'CLIENT',
       isVerified: false, 
       verificationToken: verificationTokenHash,
-      verificationTokenExpires: Date.now() + 24 * 60 * 60 * 1000 // 24 horas
+      verificationTokenExpires: Date.now() + 24 * 60 * 60 * 1000
     });
 
-    // Enviar email de verificación
     await sendVerificationEmail({
       to: email,
       verificationToken: verificationToken, 
-      userName: name
+      userName: `${firstName} ${lastName}`
     });
 
     res.status(201).json({ 
@@ -138,15 +145,14 @@ export const resendVerification = async (req, res) => {
       .update(verificationToken)
       .digest('hex');
 
-    user.verificationToken = verificationTokenHash;
+user.verificationToken = verificationTokenHash;
     user.verificationTokenExpires = Date.now() + 24 * 60 * 60 * 1000;
     await user.save();
 
-    // Enviar email
     await sendVerificationEmail({
       to: email,
       verificationToken: verificationToken,
-      userName: user.name
+      userName: `${user.firstName} ${user.lastName}`
     });
 
     res.json({ 
@@ -200,12 +206,15 @@ export const login = async (req, res) => {
       maxAge: 7 * 24 * 60 * 60 * 1000
     });
 
-    res.json({ 
+res.json({ 
       message: 'Login exitoso',
       user: {
         id: user.id,
-        name: user.name,
+        firstName: user.firstName,
+        lastName: user.lastName,
         email: user.email,
+        phone: user.phone,
+        avatarUrl: user.avatarUrl,
         role: user.role,
         isVerified: user.isVerified
       }

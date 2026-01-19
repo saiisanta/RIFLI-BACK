@@ -6,10 +6,10 @@ import { validateQuote } from '../validations/quote.validations.js';
 const router = express.Router();
 
 // Rutas protegidas
-router.get('/', authenticateToken, authorizeRole('admin'), quoteController.getAllQuotes);
+router.get('/', authenticateToken, authorizeRole('ADMIN'), quoteController.getAllQuotes);
 router.get('/:id', authenticateToken, quoteController.getQuoteById);
 router.post('/', authenticateToken, validateQuote, quoteController.createQuote);
-router.put('/:id/status', authenticateToken, authorizeRole('admin'), quoteController.updateQuoteStatus);
+router.put('/:id/status', authenticateToken, authorizeRole('ADMIN'), quoteController.updateQuoteStatus);
 router.delete('/:id', authenticateToken, quoteController.deleteQuote);
 
 export default router;

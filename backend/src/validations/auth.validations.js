@@ -2,20 +2,40 @@ import { body } from 'express-validator'
 import validateFields from '../middlewares/validateFields.middleware.js';
 import { param } from 'express-validator';
 
-// Validaciones
 export const validateRegister = [
-  body('name')
+  body('firstName')
     .trim()
     .notEmpty().withMessage('Nombre requerido')
-    .isLength({ min: 2, max: 50 }).withMessage('El nombre debe tener entre 2 y 50 caracteres')
+    .isLength({ min: 2, max: 100 }).withMessage('El nombre debe tener entre 2 y 100 caracteres')
     .matches(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/).withMessage('El nombre solo puede contener letras'),
+  
+  body('lastName')
+    .trim()
+    .notEmpty().withMessage('Apellido requerido')
+    .isLength({ min: 2, max: 100 }).withMessage('El apellido debe tener entre 2 y 100 caracteres')
+    .matches(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/).withMessage('El apellido solo puede contener letras'),
+  
+  body('documentType')
+    .trim()
+    .notEmpty().withMessage('Tipo de documento requerido')
+    .isIn(['DNI', 'CUIL', 'CUIT']).withMessage('Tipo de documento inválido'),
+  
+  body('documentNumber')
+    .trim()
+    .notEmpty().withMessage('Número de documento requerido')
+    .matches(/^[0-9]{7,8}$/).withMessage('El número de documento debe tener 7 u 8 dígitos'),
   
   body('email')
     .trim()
     .notEmpty().withMessage('Email requerido')
     .isEmail().withMessage('Email inválido')
     .normalizeEmail()
-    .isLength({ max: 100 }).withMessage('Email demasiado largo'),
+    .isLength({ max: 255 }).withMessage('Email demasiado largo'),
+  
+  body('phone')
+    .optional()
+    .trim()
+    .matches(/^\+?[0-9\s\-()]+$/).withMessage('Número de teléfono inválido'),
   
   body('password')
     .notEmpty().withMessage('Contraseña requerida')

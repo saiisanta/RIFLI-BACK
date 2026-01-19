@@ -14,7 +14,7 @@ router.get('/:id', productController.getProductById);
 router.post(
   '/',
   authenticateToken,
-  authorizeRole('admin'),
+  authorizeRole('ADMIN'),
   upload.single('image'),
   validateProduct,
   productController.createProduct
@@ -23,12 +23,12 @@ router.post(
 router.put(
   '/:id',
   authenticateToken,
-  authorizeRole('admin'),
+  authorizeRole('ADMIN'),
   upload.single('image'),
   validateProduct,
   productController.updateProduct
 );
 
-router.delete('/:id', authenticateToken, authorizeRole('admin'), productController.deleteProduct);
+router.delete('/:id', authenticateToken, authorizeRole('ADMIN'), productController.deleteProduct);
 
 export default router;

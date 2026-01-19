@@ -10,8 +10,8 @@ router.get('/', serviceController.getAllServices);
 router.get('/:id', serviceController.getServiceById);
 
 // Rutas protegidas (admin)
-router.post('/', authenticateToken, authorizeRole('admin'), validateService, serviceController.createService);
-router.put('/:id', authenticateToken, authorizeRole('admin'), validateService, serviceController.updateService);
-router.delete('/:id', authenticateToken, authorizeRole('admin'), serviceController.deleteService);
+router.post('/', authenticateToken, authorizeRole('ADMIN'), validateService, serviceController.createService);
+router.put('/:id', authenticateToken, authorizeRole('ADMIN'), validateService, serviceController.updateService);
+router.delete('/:id', authenticateToken, authorizeRole('ADMIN'), serviceController.deleteService);
 
 export default router;

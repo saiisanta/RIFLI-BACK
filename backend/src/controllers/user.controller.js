@@ -70,9 +70,8 @@ export const updateProfile = async (req, res) => {
       return res.status(404).json({ error: 'Usuario no encontrado' });
     }
 
-    const { name, email } = req.body;
+const { firstName, lastName, email, phone, avatarUrl } = req.body;
 
-    // Verificar si el nuevo email ya existe (y no es el mismo usuario)
     if (email && email !== user.email) {
       const emailExists = await User.findOne({ where: { email } });
       if (emailExists) {
@@ -80,16 +79,22 @@ export const updateProfile = async (req, res) => {
       }
     }
 
-    user.name = name || user.name;
+    user.firstName = firstName || user.firstName;
+    user.lastName = lastName || user.lastName;
     user.email = email || user.email;
+    user.phone = phone !== undefined ? phone : user.phone;
+    user.avatarUrl = avatarUrl !== undefined ? avatarUrl : user.avatarUrl;
     await user.save();
 
     res.json({ 
       message: 'Perfil actualizado correctamente',
       user: {
         id: user.id,
-        name: user.name,
+        firstName: user.firstName,
+        lastName: user.lastName,
         email: user.email,
+        phone: user.phone,
+        avatarUrl: user.avatarUrl,
         role: user.role
       }
     });
@@ -123,11 +128,12 @@ export const changeRole = async (req, res) => {
     user.role = role;
     await user.save();
 
-    res.json({ 
+res.json({ 
       message: 'Rol actualizado correctamente',
       user: {
         id: user.id,
-        name: user.name,
+        firstName: user.firstName,
+        lastName: user.lastName,
         email: user.email,
         role: user.role
       }

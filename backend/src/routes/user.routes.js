@@ -35,10 +35,9 @@ router.put('/me', authenticateToken, validateUpdateProfile, updateProfile);
 router.put('/change-password', authenticateToken, validateChangePassword, changePassword);
 router.delete('/me', authenticateToken, validateDeleteAccount, deleteOwnAccount);
 
-// ========== Rutas de admin ==========
-router.get('/', authenticateToken, authorizeRole('admin'), getAllUsers);
-router.get('/:id', authenticateToken, authorizeRole('admin'), validateId, getUserById);
-router.put('/:id/role', authenticateToken, authorizeRole('admin'), validateChangeRole, changeRole);
-router.delete('/:id', authenticateToken, authorizeRole('admin'), validateId, deleteUser);
+router.get('/', authenticateToken, authorizeRole('ADMIN'), getAllUsers);
+router.get('/:id', authenticateToken, authorizeRole('ADMIN'), validateId, getUserById);
+router.put('/:id/role', authenticateToken, authorizeRole('ADMIN'), validateChangeRole, changeRole);
+router.delete('/:id', authenticateToken, authorizeRole('ADMIN'), validateId, deleteUser);
 
 export default router;
