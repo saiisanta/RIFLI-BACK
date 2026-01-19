@@ -4,24 +4,24 @@ import sequelize from '../config/db.js';
 
 const User = sequelize.define('User', {
   // Identificación
-  firstName: {
+  first_name: {
     type: DataTypes.STRING(100),
     allowNull: false,
     validate: { len: [2, 100] }
   },
-  lastName: {
+  last_name: {
     type: DataTypes.STRING(100),
     allowNull: false,
     validate: { len: [2, 100] }
   },
-  
+
   // Documentación (Argentina)
-  documentType: {
+  document_type: {
     type: DataTypes.ENUM('DNI', 'CUIL', 'CUIT'),
     allowNull: false,
     defaultValue: 'DNI'
   },
-  documentNumber: {
+  document_number: {
     type: DataTypes.STRING(20),
     allowNull: false,
     unique: true,
@@ -30,7 +30,7 @@ const User = sequelize.define('User', {
       is: /^[0-9]{7,8}$/
     }
   },
-  
+
   // Contacto
   email: {
     type: DataTypes.STRING(255),
@@ -46,13 +46,13 @@ const User = sequelize.define('User', {
       is: /^\+?[0-9\s\-()]+$/
     }
   },
-  
+
   // Avatar
-  avatarUrl: {
+  avatar_url: {
     type: DataTypes.STRING(500),
     allowNull: true
   },
-  
+
   // Seguridad
   password: {
     type: DataTypes.STRING(255),
@@ -63,60 +63,60 @@ const User = sequelize.define('User', {
     allowNull: false,
     defaultValue: 'CLIENT'
   },
-  
+
   // Estado
-  isActive: {
+  is_active: {
     type: DataTypes.BOOLEAN,
     defaultValue: true
   },
-  isVerified: {
+  is_verified: {
     type: DataTypes.BOOLEAN,
     defaultValue: false
   },
-  
+
   // Tokens
-  verificationToken: {
+  verification_token: {
     type: DataTypes.STRING(255),
     allowNull: true
   },
-  verificationTokenExpires: {
+  verification_token_expires: {
     type: DataTypes.BIGINT,
     allowNull: true
   },
-  resetPasswordToken: {
+  reset_password_token: {
     type: DataTypes.STRING(255),
     allowNull: true
   },
-  resetPasswordExpires: {
+  reset_password_expires: {
     type: DataTypes.BIGINT,
     allowNull: true
   },
-  
+
   // Tracking
-  lastLoginAt: {
+  last_login_at: {
     type: DataTypes.DATE,
     allowNull: true
   },
-  lastLoginIp: {
+  last_login_ip: {
     type: DataTypes.STRING(45), // IPv6
     allowNull: true
   },
-  
+
   // Soft delete
-  deletedAt: {
+  deleted_at: {
     type: DataTypes.DATE,
     allowNull: true
   }
 }, {
-  tableName: 'Users',
+  tableName: 'users',
   timestamps: true,
   paranoid: true,
   indexes: [
     { fields: ['email'] },
-    { fields: ['documentNumber'] },
+    { fields: ['document_number'] },
     { fields: ['phone'] },
     { fields: ['role'] },
-    { fields: ['isActive'] }
+    { fields: ['is_active'] }
   ]
 });
 

@@ -28,12 +28,12 @@ export const validateResetPassword = [
 ];
 
 export const validateUpdateProfile = [
-  body('firstName')
+  body('first_name')
     .optional()
     .trim()
     .isLength({ min: 2, max: 100 }).withMessage('El nombre debe tener entre 2 y 100 caracteres')
     .matches(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/).withMessage('El nombre solo puede contener letras'),
-  body('lastName')
+  body('last_name')
     .optional()
     .trim()
     .isLength({ min: 2, max: 100 }).withMessage('El apellido debe tener entre 2 y 100 caracteres')
@@ -46,7 +46,7 @@ export const validateUpdateProfile = [
     .optional()
     .trim()
     .matches(/^\+?[0-9\s\-()]+$/).withMessage('Número de teléfono inválido'),
-  body('avatarUrl')
+  body('avatar_url')
     .optional()
     .trim()
     .isURL().withMessage('URL de avatar inválida'),

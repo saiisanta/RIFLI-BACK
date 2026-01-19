@@ -2,12 +2,12 @@ import { DataTypes } from 'sequelize';
 import sequelize from '../config/db.js';
 
 const Notification = sequelize.define('Notification', {
-  userId: {
+  user_id: {
     type: DataTypes.INTEGER,
     allowNull: false,
     references: { model: 'users', key: 'id' }
   },
-  
+
   // Tipo
   type: {
     type: DataTypes.ENUM(
@@ -25,7 +25,7 @@ const Notification = sequelize.define('Notification', {
     ),
     allowNull: false
   },
-  
+
   // Contenido
   title: {
     type: DataTypes.STRING(255),
@@ -34,7 +34,7 @@ const Notification = sequelize.define('Notification', {
   message: {
     type: DataTypes.TEXT
   },
-  
+
   // Metadata adicional
   //   1. Para una orden (ORDER_SHIPPED):
   // En lugar de solo decir "Tu pedido fue enviado" guarda el ID para que al hacer click el usuario vaya directo a esa orden
@@ -61,16 +61,16 @@ const Notification = sequelize.define('Notification', {
   metadata: {
     type: DataTypes.JSON
   },
-  
+
   // Estado
-  isRead: {
+  is_read: {
     type: DataTypes.BOOLEAN,
     defaultValue: false
   },
-  readAt: {
+  read_at: {
     type: DataTypes.DATE
   },
-  
+
   // Envío por email
   // sentViaEmail: {
   //   type: DataTypes.BOOLEAN,
@@ -80,13 +80,13 @@ const Notification = sequelize.define('Notification', {
   //   type: DataTypes.DATE
   // }
 }, {
-  tableName: 'Notifications',
+  tableName: 'notifications',
   timestamps: true,
   indexes: [
-    { fields: ['userId'] },
+    { fields: ['user_id'] },
     { fields: ['type'] },
-    { fields: ['isRead'] },
-    { fields: ['createdAt'] }
+    { fields: ['is_read'] },
+    { fields: ['created_at'] }
   ]
 });
 

@@ -14,7 +14,7 @@ const Category = sequelize.define('Category', {
   description: {
     type: DataTypes.TEXT
   },
-  parentId: { // Categorías anidadas (relacionar subcategorias)
+  parent_id: { // Categorías anidadas (relacionar subcategorias)
     type: DataTypes.INTEGER,
     allowNull: true,
     references: { model: 'categories', key: 'id' }
@@ -23,11 +23,11 @@ const Category = sequelize.define('Category', {
     type: DataTypes.STRING(50), // Nombre del icono
     allowNull: true
   },
-  imageUrl: {
+  image_url: {
     type: DataTypes.STRING(500),
     allowNull: true
   },
-  isActive: {
+  is_active: {
     type: DataTypes.BOOLEAN,
     defaultValue: true
   },
@@ -36,11 +36,11 @@ const Category = sequelize.define('Category', {
   //   defaultValue: 0
   // }
 }, {
-  tableName: 'Categories',
+  tableName: 'categories',
   timestamps: true,
   indexes: [
     {
-      fields: ['parentId'] 
+      fields: ['parent_id'] 
     }
   ]
 });

@@ -17,51 +17,51 @@ const Product = sequelize.define('Product', {
     unique: true,
     allowNull: true
   },
-  
+
   // Descripción
-  shortDescription: {
+  short_description: {
     type: DataTypes.STRING(500),
     allowNull: true
   },
-  longDescription: {
+  long_description: {
     type: DataTypes.TEXT,
     allowNull: true
   },
-  
+
   // Categorización
-  categoryId: {
+  category_id: {
     type: DataTypes.INTEGER,
     references: { model: 'categories', key: 'id' }
   },
-  brandId: {
+  brand_id: {
     type: DataTypes.INTEGER,
     references: { model: 'brands', key: 'id' }
   },
-  
+
   // Precio
   price: {
     type: DataTypes.DECIMAL(10, 2),
     allowNull: false
   },
-  costPrice: { // Precio de costo (solo admin)
+  cost_price: { // Precio de costo (solo admin)
     type: DataTypes.DECIMAL(10, 2),
     allowNull: true
   },
-  discountPercentage: {
+  discount_percentage: {
     type: DataTypes.DECIMAL(5, 2),
     defaultValue: 0
   },
-  
+
   // Stock
   stock: {
     type: DataTypes.INTEGER,
     defaultValue: 0
   },
-  minStock: { // Alerta de stock bajo
+  min_stock: { // Alerta de stock bajo
     type: DataTypes.INTEGER,
     defaultValue: 5
   },
-  
+
   // Características
   specifications: {
     type: DataTypes.JSON,
@@ -88,30 +88,30 @@ const Product = sequelize.define('Product', {
     }
   ]
   */
-  
+
   // Imágenes (múltiples)
   images: {
     type: DataTypes.JSON,
     allowNull: true,
     comment: 'Array de URLs: ["/images/product1.jpg", "/images/product2.jpg"]'
   },
-  mainImage: {
+  main_image: {
     type: DataTypes.STRING(500),
     allowNull: true
   },
-  
+
   // SEO
-  metaTitle: {
+  meta_title: {
     type: DataTypes.STRING(60),
     allowNull: true
   },
-  metaDescription: {
+  meta_description: {
     type: DataTypes.STRING(160),
     allowNull: true
   },
-  
+
   // Estado
-  isActive: {
+  is_active: {
     type: DataTypes.BOOLEAN,
     defaultValue: true
   },
@@ -119,31 +119,30 @@ const Product = sequelize.define('Product', {
   //   type: DataTypes.BOOLEAN,
   //   defaultValue: false
   // },
-  
+
   // Stats
-  viewCount: {
+  view_count: {
     type: DataTypes.INTEGER,
     defaultValue: 0
   },
-  salesCount: {
+  sales_count: {
     type: DataTypes.INTEGER,
     defaultValue: 0
   },
-  
-  deletedAt: {
+
+  deleted_at: {
     type: DataTypes.DATE,
     allowNull: true
   }
 }, {
-  tableName: 'Products',
+  tableName: 'products',
   timestamps: true,
   paranoid: true,
   indexes: [
-    { fields: ['slug'] },
     { fields: ['sku'] },
-    { fields: ['categoryId'] },
-    { fields: ['brandId'] },
-    { fields: ['isActive'] },
+    { fields: ['category_id'] },
+    { fields: ['brand_id'] },
+    { fields: ['is_active'] },
     { fields: ['price'] },
     { fields: ['name'] }
   ]

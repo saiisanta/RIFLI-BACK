@@ -13,7 +13,12 @@ const __dirname = dirname(__filename);
 
 dotenv.config();
 
-import { sequelize } from './models/index.js';
+import { 
+  sequelize, 
+  User, Address, Category, Brand, Product, 
+  Service, Quote, Cart, Order, Notification, 
+  PaymentProof 
+} from './models/index.js'; 
 
 // Importar Rutas
 import authRoutes from './routes/auth.routes.js';
@@ -43,8 +48,8 @@ app.get('/', (req, res) => {
 
 // Middlewares
 app.use(cors({
-  origin: 'http://localhost:5173', // frontend
-  credentials: true // permite enviar cookies
+  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+  credentials: true 
 }));
 app.use(cookieParser());
 app.use(morgan('dev'));
@@ -71,13 +76,20 @@ app.use((err, req, res, next) => {
 
 const PORT = process.env.PORT || 4001;
 
-sequelize.sync({ force: true})
-  .then(() => {
-    console.log('✅ Base de datos conectada');
+const startServer = async () => {
+  try {
+    // 'alter: true' añade columnas nuevas si las creas en el futuro sin borrar los datos existentes.
+    await sequelize.sync({ alter: true }); 
+
+    console.log('✅ Conexión a la base de datos establecida y verificada');
+
     app.listen(PORT, () => {
-      console.log(`🚀 Servidor corriendo en http://localhost:${PORT}`);
+      console.log(`🚀 Servidor corriendo en puerto: ${PORT}`);
     });
-  })
-  .catch(err => {
-    console.error('❌ Error conectando a la base de datos:', err);
-  });
+  } catch (err) {
+    console.error('❌ Error al iniciar el servidor:', err);
+    process.exit(1); // Cerramos el proceso si no hay DB
+  }
+};
+
+startServer();

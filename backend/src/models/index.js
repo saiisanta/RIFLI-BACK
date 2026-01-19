@@ -13,54 +13,54 @@ import PaymentProof from './PaymentProof.js';
 import BankAccount from './BankAccount.js';
 
 // ============ USER RELATIONS ============
-User.hasMany(Address, { foreignKey: 'userId', as: 'addresses' });
-Address.hasMany(Order, { foreignKey: 'addressId' });
-Address.belongsTo(User, { foreignKey: 'userId' });
+User.hasMany(Address, { foreignKey: 'user_id', as: 'addresses' });
+Address.hasMany(Order, { foreignKey: 'address_id' });
+Address.belongsTo(User, { foreignKey: 'user_id' });
 
-User.hasMany(Quote, { foreignKey: 'clientId', as: 'quotes' });
-Quote.belongsTo(User, { foreignKey: 'clientId', as: 'client' });
+User.hasMany(Quote, { foreignKey: 'client_id', as: 'quotes' });
+Quote.belongsTo(User, { foreignKey: 'client_id', as: 'client' });
 
-User.hasMany(Order, { foreignKey: 'userId', as: 'orders' });
-Order.belongsTo(User, { foreignKey: 'userId', as: 'customer' });
+User.hasMany(Order, { foreignKey: 'user_id', as: 'orders' });
+Order.belongsTo(User, { foreignKey: 'user_id', as: 'customer' });
 
-User.hasMany(Notification, { foreignKey: 'userId', as: 'notifications' });
-Notification.belongsTo(User, { foreignKey: 'userId' });
+User.hasMany(Notification, { foreignKey: 'user_id', as: 'notifications' });
+Notification.belongsTo(User, { foreignKey: 'user_id' });
 
 // ============ PRODUCT RELATIONS ============
-Category.hasMany(Product, { foreignKey: 'categoryId', as: 'products' });
-Product.belongsTo(Category, { foreignKey: 'categoryId', as: 'category' });
+Category.hasMany(Product, { foreignKey: 'category_id', as: 'products' });
+Product.belongsTo(Category, { foreignKey: 'category_id', as: 'category' });
 
-Brand.hasMany(Product, { foreignKey: 'brandId', as: 'products' });
-Product.belongsTo(Brand, { foreignKey: 'brandId', as: 'brand' });
+Brand.hasMany(Product, { foreignKey: 'brand_id', as: 'products' });
+Product.belongsTo(Brand, { foreignKey: 'brand_id', as: 'brand' });
 
-Category.hasMany(Category, { foreignKey: 'parentId', as: 'subcategories',onDelete: 'CASCADE' });
-Category.belongsTo(Category, { foreignKey: 'parentId', as: 'parent' });
+Category.hasMany(Category, { foreignKey: 'parent_id', as: 'subcategories',onDelete: 'CASCADE' });
+Category.belongsTo(Category, { foreignKey: 'parent_id', as: 'parent' });
 
 // ============ SERVICE & QUOTE RELATIONS ============
-Service.hasMany(Quote, { foreignKey: 'serviceId', as: 'quotes' });
-Quote.belongsTo(Service, { foreignKey: 'serviceId', as: 'service' });
+Service.hasMany(Quote, { foreignKey: 'service_id', as: 'quotes' });
+Quote.belongsTo(Service, { foreignKey: 'service_id', as: 'service' });
 
-Address.hasMany(Quote, { foreignKey: 'addressId', as: 'quotes' });
-Quote.belongsTo(Address, { foreignKey: 'addressId', as: 'workAddress' });
+Address.hasMany(Quote, { foreignKey: 'address_id', as: 'quotes' });
+Quote.belongsTo(Address, { foreignKey: 'address_id', as: 'workAddress' });
 
 // ============ ORDER RELATIONS ============
-Order.belongsTo(Address, { foreignKey: 'addressId', as: 'shippingAddress' });
-Address.hasMany(Order, { foreignKey: 'addressId' });
+Order.belongsTo(Address, { foreignKey: 'address_id', as: 'shippingAddress' });
+Address.hasMany(Order, { foreignKey: 'address_id' });
 
 // ============ PAYMENT PROOF RELATIONS ============
-PaymentProof.belongsTo(User, { foreignKey: 'userId', as: 'user' });
-PaymentProof.belongsTo(User, { foreignKey: 'reviewedBy', as: 'reviewer' });
-User.hasMany(PaymentProof, { foreignKey: 'userId', as: 'paymentProofs' });
-User.hasMany(PaymentProof, { foreignKey: 'reviewedBy', as: 'reviewedProofs' });
+PaymentProof.belongsTo(User, { foreignKey: 'user_id', as: 'user' });
+PaymentProof.belongsTo(User, { foreignKey: 'reviewed_by', as: 'reviewer' });
+User.hasMany(PaymentProof, { foreignKey: 'user_id', as: 'paymentProofs' });
+User.hasMany(PaymentProof, { foreignKey: 'reviewed_by', as: 'reviewedProofs' });
 
 // ============ CART RELATIONS ============
-User.hasOne(Cart, { foreignKey: 'userId', as: 'cart' });
-Cart.belongsTo(User, { foreignKey: 'userId' });
+User.hasOne(Cart, { foreignKey: 'user_id', as: 'cart' });
+Cart.belongsTo(User, { foreignKey: 'user_id' });
 
 // ============ BANK ACCOUNT RELATIONS ============
 // Una cuenta bancaria puede recibir muchos comprobantes
-BankAccount.hasMany(PaymentProof, { foreignKey: 'bankAccountId', as: 'receivedPayments' });
-PaymentProof.belongsTo(BankAccount, { foreignKey: 'bankAccountId', as: 'destinationAccount' });
+BankAccount.hasMany(PaymentProof, { foreignKey: 'bank_account_id', as: 'receivedPayments' });
+PaymentProof.belongsTo(BankAccount, { foreignKey: 'bank_account_id', as: 'destinationAccount' });
 
 export {
   sequelize,

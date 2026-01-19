@@ -11,16 +11,16 @@ const Brand = sequelize.define('Brand', {
   //   type: DataTypes.STRING(100),
   //   unique: true
   // },
-  logoUrl: {
+  logo_url: {
     type: DataTypes.STRING(500),
     allowNull: true
   },
-  isActive: {
+  is_active: {
     type: DataTypes.BOOLEAN,
     defaultValue: true
   }
 }, {
-  tableName: 'Brands',
+  tableName: 'brands',
   timestamps: true
 });
 

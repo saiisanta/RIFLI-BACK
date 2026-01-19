@@ -10,30 +10,30 @@ const Service = sequelize.define('Service', {
   //   type: DataTypes.STRING(255),
   //   unique: true
   // },
-  
+
   // Tipo de servicio
   type: {
     type: DataTypes.ENUM('ELECTRICITY', 'SECURITY', 'GAS'),
     allowNull: false
   },
-  
+
   // Descripción
-  shortDescription: {
+  short_description: {
     type: DataTypes.STRING(500)
   },
-  longDescription: {
+  long_description: {
     type: DataTypes.TEXT
   },
-  
+
   // Visual
   icon: {
     type: DataTypes.STRING(50), // Nombre del icono
     comment: 'Ejemplo: "zap", "shield", "flame"'
   },
-  imageUrl: {
+  image_url: {
     type: DataTypes.STRING(500)
   },
-  
+
   // Características (bullets)
   features: {
     type: DataTypes.JSON,
@@ -46,30 +46,30 @@ const Service = sequelize.define('Service', {
     "Asesoramiento técnico"
   ]
   */
-  
+
   // Precio base (opcional, puede variar según presupuesto)
   // basePrice: {
   //   type: DataTypes.DECIMAL(10, 2),
   //   allowNull: true
   // },
-  
+
   // Estado
-  isActive: {
+  is_active: {
     type: DataTypes.BOOLEAN,
     defaultValue: true
   },
-  
+
   // Orden de visualización
   order: {
     type: DataTypes.INTEGER,
     defaultValue: 0
   }
 }, {
-  tableName: 'Services',
+  tableName: 'services',
   timestamps: true,
   indexes: [
     { fields: ['type'] },
-    { fields: ['isActive'] },
+    { fields: ['is_active'] },
     // { fields: ['slug'] }
   ]
 });

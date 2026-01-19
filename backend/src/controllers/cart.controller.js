@@ -2,9 +2,9 @@ import Cart from '../models/Cart.js';
 
 export const add = async (req, res) => {
   try {
-    const { productId, quantity } = req.body;
-    const userId = req.user.id;
-    const item = await Cart.create({ productId, quantity, userId });
+    const { product_id, quantity } = req.body;
+    const user_id = req.user.id;
+    const item = await Cart.create({ product_id, quantity, user_id });
     res.json(item);
   } catch (err) {
     console.error(err);

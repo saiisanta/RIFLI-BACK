@@ -9,9 +9,9 @@ import { Op } from 'sequelize';
 // Obtener todos los usuarios (solo admins)
 export const getAllUsers = async (req, res) => {
   try {
-    const users = await User.findAll({ 
+    const users = await User.findAll({
       attributes: { exclude: ['password'] },
-      order: [['createdAt', 'DESC']] // Más recientes primero
+      order: [['created_at', 'DESC']] // Más recientes primero
     });
     res.json(users);
   } catch (error) {
@@ -24,7 +24,7 @@ export const getAllUsers = async (req, res) => {
 export const getProfile = async (req, res) => {
   try {
     const user = await User.findByPk(req.user.id, {
-      attributes: { exclude: ['password', 'verificationToken', 'verificationTokenExpires', 'resetPasswordToken', 'resetPasswordExpires'] }
+      attributes: { exclude: ['password', 'verification_token', 'verification_token_expires', 'reset_password_token', 'reset_password_expires'] }
     });
     
     if (!user) {
@@ -70,7 +70,7 @@ export const updateProfile = async (req, res) => {
       return res.status(404).json({ error: 'Usuario no encontrado' });
     }
 
-const { firstName, lastName, email, phone, avatarUrl } = req.body;
+ const { first_name, last_name, email, phone, avatar_url } = req.body;
 
     if (email && email !== user.email) {
       const emailExists = await User.findOne({ where: { email } });
@@ -79,22 +79,22 @@ const { firstName, lastName, email, phone, avatarUrl } = req.body;
       }
     }
 
-    user.firstName = firstName || user.firstName;
-    user.lastName = lastName || user.lastName;
+    user.first_name = first_name || user.first_name;
+    user.last_name = last_name || user.last_name;
     user.email = email || user.email;
     user.phone = phone !== undefined ? phone : user.phone;
-    user.avatarUrl = avatarUrl !== undefined ? avatarUrl : user.avatarUrl;
+    user.avatar_url = avatar_url !== undefined ? avatar_url : user.avatar_url;
     await user.save();
 
-    res.json({ 
+    res.json({
       message: 'Perfil actualizado correctamente',
       user: {
         id: user.id,
-        firstName: user.firstName,
-        lastName: user.lastName,
+        first_name: user.first_name,
+        last_name: user.last_name,
         email: user.email,
         phone: user.phone,
-        avatarUrl: user.avatarUrl,
+        avatar_url: user.avatar_url,
         role: user.role
       }
     });
@@ -128,12 +128,12 @@ export const changeRole = async (req, res) => {
     user.role = role;
     await user.save();
 
-res.json({ 
+res.json({
       message: 'Rol actualizado correctamente',
       user: {
         id: user.id,
-        firstName: user.firstName,
-        lastName: user.lastName,
+        first_name: user.first_name,
+        last_name: user.last_name,
         email: user.email,
         role: user.role
       }
@@ -227,8 +227,8 @@ export const requestPasswordReset = async (req, res) => {
 
     // Guardar en DB
     const expirationTime = Date.now() + (1 * 60 * 60 * 1000);
-    user.resetPasswordToken = resetTokenHash;
-    user.resetPasswordExpires = expirationTime; 
+    user.reset_password_token = resetTokenHash;
+    user.reset_password_expires = expirationTime;
     await user.save();
 
     // Enviar email
@@ -245,8 +245,8 @@ export const requestPasswordReset = async (req, res) => {
     
     // Ahora 'user' está disponible acá
     if (user) {
-      user.resetPasswordToken = null;
-      user.resetPasswordExpires = null;
+      user.reset_password_token = null;
+      user.reset_password_expires = null;
       await user.save();
     }
     
@@ -274,22 +274,22 @@ export const resetPassword = async (req, res) => {
     // Buscar usuario
     const user = await User.findOne({
       where: {
-        resetPasswordToken: resetTokenHash,
-        resetPasswordExpires: { [Op.gt]: Date.now() }
+        reset_password_token: resetTokenHash,
+        reset_password_expires: { [Op.gt]: Date.now() }
       }
     });
 
     if (!user) {
-      return res.status(400).json({ 
-        error: 'Token inválido o expirado. Solicitá uno nuevo.' 
+      return res.status(400).json({
+        error: 'Token inválido o expirado. Solicitá uno nuevo.'
       });
     }
 
     // Actualizar contraseña
     const hashedPassword = await bcrypt.hash(newPassword, 10);
     user.password = hashedPassword;
-    user.resetPasswordToken = null;
-    user.resetPasswordExpires = null;
+    user.reset_password_token = null;
+    user.reset_password_expires = null;
     await user.save();
 
     res.json({ message: 'Contraseña restablecida correctamente' });

@@ -2,12 +2,12 @@ import { DataTypes } from 'sequelize';
 import sequelize from '../config/db.js';
 
 const Cart = sequelize.define('Cart', {
-  userId: {
+  user_id: {
     type: DataTypes.INTEGER,
     allowNull: false,
     references: { model: 'users', key: 'id' }
   },
-  
+
   // Items del carrito (JSON)
   items: {
     type: DataTypes.JSON,
@@ -24,31 +24,31 @@ const Cart = sequelize.define('Cart', {
     }
   ]
   */
-  
+
   // Totales (calculados)
   subtotal: {
     type: DataTypes.DECIMAL(10, 2),
     defaultValue: 0
   },
-  
+
   // Estado
-  isActive: {
+  is_active: {
     type: DataTypes.BOOLEAN,
     defaultValue: true
   },
-  
+
   // Auto-cleanup
-  expiresAt: {
+  expires_at: {
     type: DataTypes.DATE,
     allowNull: true,
     comment: 'Fecha de expiración del carrito'
   }
 }, {
-  tableName: 'Carts',
+  tableName: 'carts',
   timestamps: true,
   indexes: [
-    { fields: ['userId'] },
-    { fields: ['expiresAt'] }
+    { fields: ['user_id'] },
+    { fields: ['expires_at'] }
   ]
 });
 

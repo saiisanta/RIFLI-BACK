@@ -14,7 +14,7 @@ export const register = async (req, res) => {
     return res.status(400).json({ errors: errors.array() }); 
   }
 
-const { firstName, lastName, documentType, documentNumber, email, password, phone } = req.body;
+ const { first_name, last_name, document_type, document_number, email, password, phone } = req.body;
   let user;
 
   try {
@@ -23,7 +23,7 @@ const { firstName, lastName, documentType, documentNumber, email, password, phon
       return res.status(400).json({ error: 'El email ya está registrado' });
     }
 
-    const documentExists = await User.findOne({ where: { documentNumber } });
+    const documentExists = await User.findOne({ where: { document_number: document_number } });
     if (documentExists) {
       return res.status(400).json({ error: 'El número de documento ya está registrado' });
     }
@@ -36,23 +36,23 @@ const { firstName, lastName, documentType, documentNumber, email, password, phon
 
     const hashedPassword = await bcrypt.hash(password, 10);
     user = await User.create({
-      firstName,
-      lastName,
-      documentType,
-      documentNumber,
+      first_name,
+      last_name,
+      document_type,
+      document_number,
       email,
       password: hashedPassword,
       phone,
       role: 'CLIENT',
-      isVerified: false, 
-      verificationToken: verificationTokenHash,
-      verificationTokenExpires: Date.now() + 24 * 60 * 60 * 1000
+      is_verified: false,
+      verification_token: verificationTokenHash,
+      verification_token_expires: Date.now() + 24 * 60 * 60 * 1000
     });
 
     await sendVerificationEmail({
       to: email,
-      verificationToken: verificationToken, 
-      userName: `${firstName} ${lastName}`
+      verificationToken: verificationToken,
+      userName: `${first_name} ${last_name}`
     });
 
     res.status(201).json({ 
@@ -85,21 +85,21 @@ export const verifyEmail = async (req, res) => {
     // Buscar usuario con token válido y no expirado
     const user = await User.findOne({
       where: {
-        verificationToken: verificationTokenHash,
-        verificationTokenExpires: { [Op.gt]: Date.now() }
+        verification_token: verificationTokenHash,
+        verification_token_expires: { [Op.gt]: Date.now() }
       }
     });
 
     if (!user) {
-      return res.status(400).json({ 
-        error: 'Token de verificación inválido o expirado' 
+      return res.status(400).json({
+        error: 'Token de verificación inválido o expirado'
       });
     }
 
     // Verificar usuario
-    user.isVerified = true;
-    user.verificationToken = null;
-    user.verificationTokenExpires = null;
+    user.is_verified = true;
+    user.verification_token = null;
+    user.verification_token_expires = null;
     await user.save();
 
     res.json({ 
@@ -132,9 +132,9 @@ export const resendVerification = async (req, res) => {
     }
 
     // Si ya está verificado
-    if (user.isVerified) {
-      return res.status(400).json({ 
-        error: 'Este email ya está verificado' 
+    if (user.is_verified) {
+      return res.status(400).json({
+        error: 'Este email ya está verificado'
       });
     }
 
@@ -145,14 +145,14 @@ export const resendVerification = async (req, res) => {
       .update(verificationToken)
       .digest('hex');
 
-user.verificationToken = verificationTokenHash;
-    user.verificationTokenExpires = Date.now() + 24 * 60 * 60 * 1000;
+    user.verification_token = verificationTokenHash;
+    user.verification_token_expires = Date.now() + 24 * 60 * 60 * 1000;
     await user.save();
 
     await sendVerificationEmail({
       to: email,
       verificationToken: verificationToken,
-      userName: `${user.firstName} ${user.lastName}`
+      userName: `${user.first_name} ${user.last_name}`
     });
 
     res.json({ 
@@ -162,8 +162,8 @@ user.verificationToken = verificationTokenHash;
     console.error(error);
     
     if (user) {
-      user.verificationToken = null;
-      user.verificationTokenExpires = null;
+      user.verification_token = null;
+      user.verification_token_expires = null;
       await user.save();
     }
     
@@ -183,8 +183,8 @@ export const login = async (req, res) => {
     if (!user) return res.status(400).json({ error: 'Credenciales incorrectas' });
 
     // Verificar que el email esté verificado
-    if (!user.isVerified) {
-      return res.status(403).json({ 
+    if (!user.is_verified) {
+      return res.status(403).json({
         error: 'Por favor verificá tu email antes de iniciar sesión',
         code: 'EMAIL_NOT_VERIFIED'
       });
@@ -206,17 +206,17 @@ export const login = async (req, res) => {
       maxAge: 7 * 24 * 60 * 60 * 1000
     });
 
-res.json({ 
+res.json({
       message: 'Login exitoso',
       user: {
         id: user.id,
-        firstName: user.firstName,
-        lastName: user.lastName,
+        first_name: user.first_name,
+        last_name: user.last_name,
         email: user.email,
         phone: user.phone,
-        avatarUrl: user.avatarUrl,
+        avatar_url: user.avatar_url,
         role: user.role,
-        isVerified: user.isVerified
+        is_verified: user.is_verified
       }
     });
   } catch (err) {

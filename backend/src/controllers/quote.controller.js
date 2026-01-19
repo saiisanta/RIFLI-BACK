@@ -25,7 +25,7 @@ const quote = await Quote.findByPk(req.params.id, {
 
     if (!quote) return res.status(404).json({ error: 'Presupuesto no encontrado' });
 
-    if (req.user.role !== 'ADMIN' && req.user.id !== quote.clientId) {
+    if (req.user.role !== 'ADMIN' && req.user.id !== quote.client_id) {
       return res.status(403).json({ error: 'No autorizado' });
     }
 
@@ -41,11 +41,11 @@ export const createQuote = async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
 
-try {
+ try {
     const newQuote = await Quote.create({
-      clientId: req.user.id,
-      serviceId: req.body.serviceId,
-      serviceDetails: req.body.serviceDetails,
+      client_id: req.user.id,
+      service_id: req.body.service_id,
+      service_details: req.body.service_details,
       status: 'PENDING'
     });
     res.status(201).json(newQuote);
@@ -75,9 +75,9 @@ export const updateQuoteStatus = async (req, res) => {
 export const deleteQuote = async (req, res) => {
   try {
     const quote = await Quote.findByPk(req.params.id);
-if (!quote) return res.status(404).json({ error: 'Presupuesto no encontrado' });
+ if (!quote) return res.status(404).json({ error: 'Presupuesto no encontrado' });
 
-    if (req.user.role !== 'ADMIN' && req.user.id !== quote.clientId) {
+    if (req.user.role !== 'ADMIN' && req.user.id !== quote.client_id) {
       return res.status(403).json({ error: 'No autorizado' });
     }
 

@@ -2,18 +2,18 @@ import { DataTypes } from 'sequelize';
 import sequelize from '../config/db.js';
 
 const Address = sequelize.define('Address', {
-  userId: {
+  user_id: {
     type: DataTypes.INTEGER,
     allowNull: false,
     references: { model: 'users', key: 'id' }
   },
-  
+
   // Datos básicos
   alias: {
     type: DataTypes.STRING(50), // "Casa", "Trabajo", "Oficina"
     allowNull: false
   },
-  
+
   // Dirección completa
   street: {
     type: DataTypes.STRING(255),
@@ -31,17 +31,17 @@ const Address = sequelize.define('Address', {
     type: DataTypes.STRING(10),
     allowNull: true
   },
-  
+
   // Localización
   city: {
     type: DataTypes.STRING(100),
     allowNull: false
   },
   province: {
-    type: DataTypes.STRING(100), 
+    type: DataTypes.STRING(100),
     allowNull: false
   },
-  postalCode: {
+  postal_code: {
     type: DataTypes.STRING(10),
     allowNull: false
   },
@@ -49,7 +49,7 @@ const Address = sequelize.define('Address', {
     type: DataTypes.STRING(50),
     defaultValue: 'Argentina'
   },
-  
+
   // Google Maps API
   latitude: {
     type: DataTypes.DECIMAL(10, 8),
@@ -59,44 +59,44 @@ const Address = sequelize.define('Address', {
     type: DataTypes.DECIMAL(11, 8),
     allowNull: true
   },
-  placeId: { // Google Place ID
+  place_id: { // Google Place ID
     type: DataTypes.STRING(255),
     allowNull: true
   },
-  formattedAddress: { // Dirección formateada por Google
+  formatted_address: { // Dirección formateada por Google
     type: DataTypes.STRING(500),
     allowNull: true
   },
-  
+
   // Referencias adicionales
-  additionalInfo: {
+  additional_info: {
     type: DataTypes.TEXT,
     allowNull: true,
     comment: 'Timbre, piso, entre calles, etc.'
   },
-  
+
   // Flags
-  isDefault: { // Dirección elegida por el usuario
+  is_default: { // Dirección elegida por el usuario
     type: DataTypes.BOOLEAN,
     defaultValue: false
   },
-  isActive: {
+  is_active: {
     type: DataTypes.BOOLEAN,
     defaultValue: true
   },
-  
-  deletedAt: {
+
+  deleted_at: {
     type: DataTypes.DATE,
     allowNull: true
   }
 }, {
-  tableName: 'Addresses',
+  tableName: 'addresses',
   timestamps: true,
   paranoid: true,
   indexes: [
-    { fields: ['userId'] },
-    { fields: ['isDefault'] },
-    { fields: ['postalCode'] }
+    { fields: ['user_id'] },
+    { fields: ['is_default'] },
+    { fields: ['postal_code'] }
   ]
 });
 

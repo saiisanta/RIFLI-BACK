@@ -4,68 +4,68 @@ import sequelize from '../config/db.js';
 
 const PaymentProof = sequelize.define('PaymentProof', {
   // Referencia (orden o presupuesto)
-  relatedType: {
+  related_type: {
     type: DataTypes.ENUM('ORDER', 'QUOTE'),
     allowNull: false
   },
-  relatedId: {
+  related_id: {
     type: DataTypes.INTEGER,
     allowNull: false
   },
-  
+
   // Usuario que subió el comprobante
-  userId: {
+  user_id: {
     type: DataTypes.INTEGER,
     allowNull: false,
     references: { model: 'users', key: 'id' }
   },
-  
+
   // Tipo de pago
-  paymentType: {
+  payment_type: {
     type: DataTypes.ENUM(
       'BANK_TRANSFER',    // Transferencia bancaria
       'CASH',             // Efectivo (en persona)
     ),
     allowNull: false
   },
-  
+
   // Monto
   amount: {
     type: DataTypes.DECIMAL(10, 2),
     allowNull: false
   },
-  
+
   // Comprobante de transferencia
-  proofImageUrl: {
+  proof_image_url: {
     type: DataTypes.STRING(500),
     allowNull: true,
     comment: 'URL de la imagen del comprobante (solo para transferencias)'
   },
-  
+
   // Datos de la transferencia
-  transactionReference: {
+  transaction_reference: {
     type: DataTypes.STRING(100),
     allowNull: true,
     unique: true,
     comment: 'Número de referencia/operación'
   },
-  transactionDate: {
+  transaction_date: {
     type: DataTypes.DATE,
     allowNull: true,
     comment: 'Fecha de la transferencia'
   },
-  
+
   // Datos bancarios usados
-  bankName: {
+  bank_name: {
     type: DataTypes.STRING(100),
     allowNull: true
   },
-  accountNumber: {
+  account_number: {
     type: DataTypes.STRING(50),
     allowNull: true,
     comment: 'Últimos 4 dígitos'
   },
-  
+
   // Estado
   status: {
     type: DataTypes.ENUM(
@@ -76,40 +76,40 @@ const PaymentProof = sequelize.define('PaymentProof', {
     ),
     defaultValue: 'PENDING'
   },
-  
+
   // Notas del usuario
   notes: {
     type: DataTypes.TEXT,
     allowNull: true
   },
-  
+
   // Revisión del admin
-  reviewedBy: {
+  reviewed_by: {
     type: DataTypes.INTEGER,
     allowNull: true,
     references: { model: 'users', key: 'id' }
   },
-  reviewedAt: {
+  reviewed_at: {
     type: DataTypes.DATE,
     allowNull: true
   },
-  adminNotes: {
+  admin_notes: {
     type: DataTypes.TEXT,
     allowNull: true,
     comment: 'Notas del admin al aprobar/rechazar'
   },
-  rejectionReason: {
+  rejection_reason: {
     type: DataTypes.STRING(255),
     allowNull: true
   }
 }, {
-  tableName: 'Payment_proofs',
+  tableName: 'payment_proofs',
   timestamps: true,
   indexes: [
-    { fields: ['relatedType', 'relatedId'] },
-    { fields: ['userId'] },
+    { fields: ['related_type', 'related_id'] },
+    { fields: ['user_id'] },
     { fields: ['status'] },
-    { fields: ['createdAt'] }
+    { fields: ['created_at'] }
   ]
 });
 

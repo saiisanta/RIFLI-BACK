@@ -2,15 +2,15 @@ import { DataTypes } from 'sequelize';
 import sequelize from '../config/db.js';
 
 const BankAccount = sequelize.define('BankAccount', {
-  bankName: {
+  bank_name: {
     type: DataTypes.STRING(100),
     allowNull: false
   },
-  accountType: {
+  account_type: {
     type: DataTypes.ENUM('SAVINGS', 'CHECKING'),
     allowNull: false
   },
-  accountNumber: {
+  account_number: {
     type: DataTypes.STRING(50),
     allowNull: false
   },
@@ -25,27 +25,27 @@ const BankAccount = sequelize.define('BankAccount', {
     type: DataTypes.STRING(50),
     allowNull: true
   },
-  holderName: {
+  holder_name: {
     type: DataTypes.STRING(255),
     allowNull: false
   },
-  holderDocument: {
+  holder_document: {
     type: DataTypes.STRING(20),
     allowNull: false
   },
-  holderCuit: {
+  holder_cuit: {
     type: DataTypes.STRING(11),
     allowNull: false,
     validate: {
       is: /^[0-9]{11}$/ // Valida exactamente 11 números
     }
   },
-  isActive: {
+  is_active: {
     type: DataTypes.BOOLEAN,
     defaultValue: true
   }
 }, {
-  tableName: 'Bank_accounts',
+  tableName: 'bank_accounts',
   timestamps: true
 });
 

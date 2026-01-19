@@ -3,17 +3,17 @@ import sequelize from '../config/db.js';
 
 const Quote = sequelize.define('Quote', {
   // Referencias
-  clientId: {
+  client_id: {
     type: DataTypes.INTEGER,
     allowNull: false,
     references: { model: 'users', key: 'id' }
   },
-  serviceId: {
+  service_id: {
     type: DataTypes.INTEGER,
     allowNull: false,
     references: { model: 'services', key: 'id' }
   },
-  addressId: { // Dirección donde se hará el trabajo
+  address_id: { // Dirección donde se hará el trabajo
     type: DataTypes.INTEGER,
     references: { model: 'addresses', key: 'id' }
   },
@@ -23,15 +23,15 @@ const Quote = sequelize.define('Quote', {
   //   allowNull: true,
   //   references: { model: 'users', key: 'id' }
   // },
-  
+
   // Estado
   status: {
     type: DataTypes.ENUM('PENDING', 'QUOTED', 'ACCEPTED', 'IN_PROGRESS', 'COMPLETED', 'REJECTED', 'CANCELLED'),
     defaultValue: 'PENDING'
   },
-  
+
   // Detalles según tipo de servicio (JSON)
-  serviceDetails: {
+  service_details: {
     type: DataTypes.JSON,
     allowNull: true,
     comment: 'Estructura según tipo: Electricidad, Seguridad, Gas'
@@ -46,9 +46,9 @@ const Quote = sequelize.define('Quote', {
     "requiredVoltage": "220V"
   }
   */
-  
+
   // Cotización
-  quotedAmount: {
+  quoted_amount: {
     type: DataTypes.DECIMAL(10, 2),
     allowNull: true
   },
@@ -56,17 +56,17 @@ const Quote = sequelize.define('Quote', {
     type: DataTypes.STRING(3),
     defaultValue: 'ARS'
   },
-  
+
   // Seña (50%)
-  depositAmount: {
+  deposit_amount: {
     type: DataTypes.DECIMAL(10, 2),
     allowNull: true
   },
-  paymentMethod: {
+  payment_method: {
   type: DataTypes.ENUM('BANK_TRANSFER', 'CASH'),
   allowNull: true
   },
-  depositPaymentStatus: {
+  deposit_payment_status: {
     type: DataTypes.ENUM(
       'PENDING_PROOF',
       'PROOF_UPLOADED',
@@ -76,17 +76,17 @@ const Quote = sequelize.define('Quote', {
     ),
     defaultValue: 'PENDING_PROOF'
   },
-  depositPaidAt: {
+  deposit_paid_at: {
     type: DataTypes.DATE,
     allowNull: true
   },
-  
+
   // Pago final (50%)
-  finalPaymentAmount: {
+  final_payment_amount: {
     type: DataTypes.DECIMAL(10, 2),
     allowNull: true
   },
-  finalPaymentStatus: {
+  final_payment_status: {
     type: DataTypes.ENUM(
       'PENDING',
       'PENDING_PROOF',
@@ -97,57 +97,57 @@ const Quote = sequelize.define('Quote', {
     ),
     defaultValue: 'PENDING'
   },
-  finalPaymentPaidAt: {
+  final_payment_paid_at: {
     type: DataTypes.DATE,
     allowNull: true
   },
-  
+
   // Notas
-  clientNotes: {
+  client_notes: {
     type: DataTypes.TEXT,
     comment: 'Notas del cliente al solicitar'
   },
-  internalNotes: {
+  internal_notes: {
     type: DataTypes.TEXT,
     comment: 'Notas internas (solo admin/técnico)'
   },
-  
+
   // Fechas
-  quotedAt: {
+  quoted_at: {
     type: DataTypes.DATE,
     allowNull: true
   },
-  acceptedAt: {
+  accepted_at: {
     type: DataTypes.DATE,
     allowNull: true
   },
-  startedAt: {
+  started_at: {
     type: DataTypes.DATE,
     allowNull: true
   },
-  completedAt: {
+  completed_at: {
     type: DataTypes.DATE,
     allowNull: true
   },
-  
+
   // Validez de la cotización
-  validUntil: {
+  valid_until: {
     type: DataTypes.DATE,
     allowNull: true
   },
-  
-  deletedAt: {
+
+  deleted_at: {
     type: DataTypes.DATE
   }
 }, {
-  tableName: 'Quotes',
+  tableName: 'quotes',
   timestamps: true,
   paranoid: true,
   indexes: [
-    { fields: ['clientId'] },
-    { fields: ['serviceId'] },
+    { fields: ['client_id'] },
+    { fields: ['service_id'] },
     { fields: ['status'] },
-    { fields: ['createdAt'] }
+    { fields: ['created_at'] }
   ]
 });
 
