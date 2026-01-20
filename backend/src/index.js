@@ -27,6 +27,8 @@ import serviceRoutes from './routes/service.routes.js';
 import quoteRoutes from './routes/quote.routes.js';
 import cartRoutes from './routes/cart.routes.js';
 import userRoutes from './routes/user.routes.js';
+import brandRoutes from './routes/brand.routes.js';
+import categoryRoutes from './routes/category.routes.js';
 
 const app = express();
 
@@ -41,7 +43,8 @@ app.get('/', (req, res) => {
       quotes: '/api/quotes',
       carts: '/api/carts',
       users: '/api/users',
-      images: '/api/images'
+      brands: '/api/brands',
+      categories: '/api/categories'
     }
   });
 });
@@ -63,10 +66,8 @@ app.use('/api/services', serviceRoutes);
 app.use('/api/quotes', quoteRoutes);
 app.use('/api/carts', cartRoutes);
 app.use('/api/users', userRoutes);
-app.use(
-  "/api/images",
-  express.static(path.join(__dirname, "..", "public", "images"))
-);
+app.use('/api/brands', brandRoutes);
+app.use('/api/categories', categoryRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {
