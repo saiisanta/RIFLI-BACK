@@ -25,7 +25,7 @@ export const getAllProducts = async (req, res) => {
         { model: Category, as: 'category', attributes: ['id', 'name', 'icon'] },
         { model: Brand, as: 'brand', attributes: ['id', 'name', 'logo_url'] }
       ],
-      order: [['name', 'ASC']]
+      order: [['stock', 'DESC']]
     });
     
     res.json(products);
