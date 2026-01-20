@@ -18,7 +18,12 @@ router.post(
   '/',
   authenticateToken,
   authorizeRole('ADMIN'),
-  upload.array('images', 10),
+  upload.array('images', 5), // <--- Multer DEBE ir aquí
+  (req, res, next) => {
+    // ESTE LOG SÍ DEBERÍA VERSE SI MULTER FUNCIONA
+    console.log('¿Hay body?:', req.body);
+    next();
+  },
   validateProduct,
   productController.createProduct
 );
@@ -31,7 +36,7 @@ router.put(
   '/:id',
   authenticateToken,
   authorizeRole('ADMIN'),
-  upload.array('images', 10),
+  upload.array('images', 5),
   validateProductUpdate,
   productController.updateProduct
 );
