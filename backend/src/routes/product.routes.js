@@ -1,31 +1,38 @@
+// routes/product.routes.js
 import express from 'express';
 import * as productController from '../controllers/product.controller.js';
 import { authenticateToken, authorizeRole } from '../middlewares/auth.middleware.js';
 import upload from '../middlewares/upload.middleware.js';
-import { validateProduct } from '../validations/product.validations.js';
+import { validateProduct, validateProductUpdate } from '../validations/product.validations.js';
 
 const router = express.Router();
 
-// Rutas públicas
-router.get('/', productController.getAllProducts);
-router.get('/:id', productController.getProductById);
+// Búsqueda y stats
+router.get('/search', productController.searchProducts);
+router.get('/stats/dashboard', authenticateToken, authorizeRole('ADMIN'), productController.getProductStats);
 
-// Rutas protegidas (con imagen y validación)
+// CRUD general
+router.get('/', productController.getAllProducts);
+
 router.post(
   '/',
   authenticateToken,
   authorizeRole('ADMIN'),
-  upload.single('image'),
+  upload.array('images', 10),
   validateProduct,
   productController.createProduct
 );
+
+// Rutas con :id (al final para evitar conflictos)
+router.get('/:id', productController.getProductById);
+router.get('/:id/related', productController.getRelatedProducts);
 
 router.put(
   '/:id',
   authenticateToken,
   authorizeRole('ADMIN'),
-  upload.single('image'),
-  validateProduct,
+  upload.array('images', 10),
+  validateProductUpdate,
   productController.updateProduct
 );
 
