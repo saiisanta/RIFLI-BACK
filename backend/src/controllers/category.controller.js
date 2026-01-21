@@ -12,8 +12,8 @@ export const getAllCategories = async (req, res) => {
 
 export const createCategory = async (req, res) => {
   try {
-    const { name, description, icon, image_url } = req.body;
-    const newCategory = await Category.create({ name, logo_url });
+    const { name, description, parent_id, icon} = req.body;
+    const newCategory = await Category.create({ name, description, parent_id, icon });
     res.status(201).json(newCategory);
   } catch (err) {
     console.error(err);
