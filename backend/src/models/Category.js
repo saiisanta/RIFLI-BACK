@@ -23,10 +23,6 @@ const Category = sequelize.define('Category', {
     type: DataTypes.STRING(50), // Nombre del icono
     allowNull: true
   },
-  image_url: {
-    type: DataTypes.STRING(500),
-    allowNull: true
-  },
   is_active: {
     type: DataTypes.BOOLEAN,
     defaultValue: true

@@ -59,10 +59,13 @@ export const getProductById = async (req, res) => {
 };
 
 export const createProduct = async (req, res) => {
+
+  //DEBUG 
   console.log("=== BACKEND DEBUG ===");
   console.log("Content-Type:", req.headers["content-type"]);
   console.log("req.files:", req.files);
   console.log("req.body:", req.body);
+  
   const errors = validationResult(req);
   if (!errors.isEmpty())
     return res.status(400).json({ errors: errors.array() });
