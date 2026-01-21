@@ -6,10 +6,24 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import cookieParser from 'cookie-parser';
+import fs from 'fs';
+
+
 
 // Recrear __dirname para ES Modules
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
+
+console.log('📁 __dirname:', __dirname);
+console.log('📁 Ruta completa de imágenes:', path.join(__dirname, 'public/images'));
+
+const imgPath = path.join(__dirname, 'public/images/products');
+console.log('📁 ¿Existe carpeta products?:', fs.existsSync(imgPath));
+
+if (fs.existsSync(imgPath)) {
+  const files = fs.readdirSync(imgPath);
+  console.log('📁 Archivos en products:', files.slice(0, 5)); // Muestra los primeros 5
+}
 
 dotenv.config();
 
@@ -51,8 +65,14 @@ app.get('/', (req, res) => {
 
 // Middlewares
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
-  credentials: true 
+  origin: (origin, callback) => {
+    if (!origin) return callback(null, true);
+    if (origin === 'http://localhost:5173') {
+      return callback(null, true);
+    }
+    return callback(new Error('Not allowed by CORS'));
+  },
+  credentials: true
 }));
 app.use(cookieParser());
 app.use(morgan('dev'));
@@ -68,6 +88,7 @@ app.use('/api/carts', cartRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/brands', brandRoutes);
 app.use('/api/categories', categoryRoutes);
+app.use('/images', express.static(path.join(__dirname, '../public/images')));
 
 // Error handling middleware
 app.use((err, req, res, next) => {
