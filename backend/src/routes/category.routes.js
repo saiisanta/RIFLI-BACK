@@ -1,8 +1,39 @@
 import express from 'express';
-
-import { getAllCategories, createCategory } from '../controllers/category.controller.js';
+import * as categoryController from '../controllers/category.controller.js';
+import { authenticateToken, authorizeRole } from '../middlewares/auth.middleware.js';
+import { uploadCategory } from '../middlewares/upload.middleware.js';
+import { validateCategory } from '../validations/category.validations.js';
 
 const router = express.Router();
-router.get('/', getAllCategories);
-router.post('/', createCategory);
+
+// Públicas
+router.get('/', categoryController.getAllCategories);
+router.get('/:id', categoryController.getCategoryById);
+
+// Protegidas (admin)
+router.post(
+  '/',
+  authenticateToken,
+  authorizeRole('ADMIN'),
+  uploadCategory.single('icon'),
+  validateCategory,
+  categoryController.createCategory
+);
+
+router.put(
+  '/:id',
+  authenticateToken,
+  authorizeRole('ADMIN'),
+  uploadCategory.single('icon'),
+  validateCategory,
+  categoryController.updateCategory
+);
+
+router.delete(
+  '/:id',
+  authenticateToken,
+  authorizeRole('ADMIN'),
+  categoryController.deleteCategory
+);
+
 export default router;
