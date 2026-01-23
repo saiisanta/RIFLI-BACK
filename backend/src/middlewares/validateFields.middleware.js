@@ -1,3 +1,4 @@
+// middlewares/validateFields.middleware.js
 import { validationResult } from 'express-validator';
 
 const validateFields = (req, res, next) => {

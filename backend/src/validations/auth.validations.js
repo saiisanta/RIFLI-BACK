@@ -43,6 +43,15 @@ export const validateLogin = [
   validateFields
 ];
 
+export const validateResendEmail = [
+  body('email')
+    .trim()
+    .notEmpty().withMessage('Email requerido')
+    .isEmail().withMessage('Email inválido')
+    .normalizeEmail(),
+  validateFields
+];
+
 export const validateVerifyEmail = [
   param('token')
     .isHexadecimal()

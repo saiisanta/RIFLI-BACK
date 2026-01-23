@@ -1,3 +1,4 @@
+// routes/brand.routes.js
 import express from 'express';
 import { 
   createBrand,
@@ -15,7 +16,7 @@ const router = express.Router();
 
 // ========== Rutas públicas ==========
 router.get('/', getAllBrands);
-router.get('/:id', getBrandById);
+router.get('/:id', validateId,getBrandById);
 
 // ========== Rutas de administrador ==========
 router.post('/', authenticateToken, authorizeRole('ADMIN'), uploadBrand, validateBrand, createBrand);

@@ -43,7 +43,7 @@ router.delete('/avatar', authenticateToken, deleteAvatar);
 // ========== Rutas de administrador ==========
 router.get('/', authenticateToken, authorizeRole('ADMIN'), getAllUsers);
 router.get('/:id', authenticateToken, authorizeRole('ADMIN'), validateId, getUserById);
-router.put('/:id/role', authenticateToken, authorizeRole('ADMIN'), validateChangeRole, changeRole);
+router.put('/:id/role', authenticateToken, authorizeRole('ADMIN'), validateId, validateChangeRole, changeRole);
 router.delete('/:id', authenticateToken, authorizeRole('ADMIN'), validateId, deleteUser);
 
 export default router;

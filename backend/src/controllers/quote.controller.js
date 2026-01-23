@@ -1,3 +1,4 @@
+// controllers/quote.controller.js
 import Quote from '../models/Quote.js';
 import Service from '../models/Service.js';
 import User from '../models/User.js';

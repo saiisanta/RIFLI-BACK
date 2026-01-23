@@ -1,3 +1,4 @@
+// routes/category.routes.js
 import express from 'express';
 import { 
   getAllCategories,
@@ -15,7 +16,7 @@ const router = express.Router();
 
 // ========== Rutas públicas ==========
 router.get('/', getAllCategories);
-router.get('/:id', getCategoryById);
+router.get('/:id', validateId, getCategoryById);
 
 // ========== Rutas de administrador ==========
 router.post('/', authenticateToken, authorizeRole('ADMIN'), uploadCategory, validateCategory, createCategory);

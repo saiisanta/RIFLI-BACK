@@ -1,3 +1,4 @@
+// controllers/cart.controller.js
 import Cart from '../models/Cart.js';
 
 export const add = async (req, res) => {

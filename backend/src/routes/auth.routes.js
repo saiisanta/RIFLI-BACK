@@ -7,21 +7,21 @@ import {
   verifyEmail, 
   resendVerification 
 } from '../controllers/auth.controller.js';
-import { validateRegister, validateLogin, validateVerifyEmail} from '../validations/auth.validations.js';
-import { body } from 'express-validator';
-import validateFields from '../middlewares/validateFields.middleware.js';
+import { 
+  validateRegister,
+  validateLogin, 
+  validateResendEmail, 
+  validateVerifyEmail
+} from '../validations/auth.validations.js';
 
 const router = express.Router();
 
-// Registro y verificación
+// ========== Registro y verificación ==========
 router.post('/register', validateRegister, register);
 router.get('/verify-email/:token', validateVerifyEmail, verifyEmail);
-router.post('/resend-verification', [
-  body('email').trim().isEmail().withMessage('Email inválido'),
-  validateFields
-], resendVerification);
+router.post('/resend-verification', validateResendEmail, resendVerification);
 
-// Login y logout
+// ========== Login y Logout ==========
 router.post('/login', validateLogin, login);
 router.post('/logout', logout);
 

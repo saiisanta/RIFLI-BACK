@@ -6,9 +6,6 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import cookieParser from 'cookie-parser';
-import fs from 'fs';
-
-
 
 // Recrear __dirname para ES Modules
 const __filename = fileURLToPath(import.meta.url);
@@ -16,12 +13,7 @@ const __dirname = dirname(__filename);
 
 dotenv.config();
 
-import { 
-  sequelize, 
-  User, Address, Category, Brand, Product, 
-  Service, Quote, Cart, Order, Notification, 
-  PaymentProof 
-} from './models/index.js'; 
+import { sequelize } from './models/index.js'; 
 
 // Importar Rutas
 import authRoutes from './routes/auth.routes.js';

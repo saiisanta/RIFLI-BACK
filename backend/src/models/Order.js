@@ -1,3 +1,4 @@
+// models/Order.js
 import { DataTypes, Op } from 'sequelize';
 import sequelize from '../config/db.js';
 
