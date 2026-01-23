@@ -12,7 +12,9 @@ import {
   changePassword,
   requestPasswordReset,
   resetPassword,
-  deleteOwnAccount
+  deleteOwnAccount,
+  updateAvatar,
+  deleteAvatar
 } from '../controllers/user.controller.js';
 import { validateId } from '../validations/id.validation.js';
 import {

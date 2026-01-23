@@ -39,25 +39,30 @@ const limits = {
   fileSize: 5 * 1024 * 1024 // 5MB
 };
 
-// Configuración base de multer
-const createUploader = (folder) => multer({ 
-  storage: createStorage(folder),
+// Exportar diferentes configuraciones
+export const uploadProduct = multer({ 
+  storage: createStorage('products'),
   fileFilter,
   limits
 });
 
-// Exportar diferentes configuraciones
-// Para productos: permite múltiples archivos (hasta 5 imágenes)
-export const uploadProduct = createUploader('products').array('images', 5);
+export const uploadBrand = multer({ 
+  storage: createStorage('brands'),
+  fileFilter,
+  limits
+});
 
-// Para brands: un solo archivo
-export const uploadBrand = createUploader('brands').single('logo');
+export const uploadCategory = multer({ 
+  storage: createStorage('categories'),
+  fileFilter,
+  limits
+});
 
-// Para categories: un solo archivo
-export const uploadCategory = createUploader('categories').single('icon');
-
-// Para avatars: un solo archivo
-export const uploadAvatar = createUploader('avatars').single('avatar');
+export const uploadAvatar = multer({ 
+  storage: createStorage('avatars'),
+  fileFilter,
+  limits
+});
 
 // Export por defecto (para compatibilidad)
 export default uploadProduct;
