@@ -4,6 +4,37 @@ import Brand from "../models/Brand.js";
 import { validationResult } from "express-validator";
 import { Op } from "sequelize";
 import sequelize from "../config/db.js";
+import fs from 'fs/promises';
+import fsSync from 'fs';
+import path from 'path';
+
+// Función auxiliar para eliminar imagen
+const deleteImage = async (imagePath) => {
+  if (!imagePath) return;
+  
+  try {
+    const fullPath = path.join(process.cwd(), 'public', imagePath);
+    
+    console.log('Intentando eliminar:', fullPath);
+    
+    if (fsSync.existsSync(fullPath)) {
+      await fs.unlink(fullPath);
+      console.log('✓ Imagen eliminada correctamente');
+    } else {
+      console.log('⚠ Archivo no encontrado');
+    }
+  } catch (err) {
+    console.error('✗ Error al eliminar imagen:', err);
+  }
+};
+
+// Función auxiliar para eliminar múltiples imágenes
+const deleteMultipleImages = async (imagePaths) => {
+  if (!imagePaths || imagePaths.length === 0) return;
+  
+  const deletePromises = imagePaths.map(imagePath => deleteImage(imagePath));
+  await Promise.all(deletePromises);
+};
 
 export const getAllProducts = async (req, res) => {
   try {
@@ -163,6 +194,7 @@ export const updateProduct = async (req, res) => {
     // Manejo de imágenes
     let images = product.images || [];
     let mainImage = product.main_image;
+    const imagesToDelete = []; // Array para almacenar imágenes a eliminar
 
     // Agregar nuevas imágenes
     if (req.files && req.files.length > 0) {
@@ -179,6 +211,11 @@ export const updateProduct = async (req, res) => {
     if (req.body.remove_images) {
       try {
         const imagesToRemove = JSON.parse(req.body.remove_images);
+        
+        // Agregar las imágenes a eliminar al array
+        imagesToDelete.push(...imagesToRemove);
+        
+        // Filtrar las imágenes del producto
         images = images.filter((img) => !imagesToRemove.includes(img));
 
         // Si se eliminó la imagen principal, asignar otra
@@ -269,6 +306,11 @@ export const updateProduct = async (req, res) => {
 
     await transaction.commit();
 
+    // Eliminar las imágenes del sistema de archivos DESPUÉS de hacer commit
+    if (imagesToDelete.length > 0) {
+      await deleteMultipleImages(imagesToDelete);
+    }
+
     // Recargar producto con relaciones
     const updatedProduct = await Product.findByPk(product.id, {
       include: [
@@ -280,6 +322,13 @@ export const updateProduct = async (req, res) => {
     res.json(updatedProduct);
   } catch (err) {
     await transaction.rollback();
+    
+    // Si hubo error y se subieron nuevas imágenes, eliminarlas
+    if (req.files && req.files.length > 0) {
+      const newImages = req.files.map((f) => `/images/${f.filename}`);
+      await deleteMultipleImages(newImages);
+    }
+    
     console.error(err);
     res.status(500).json({ error: "Error al actualizar producto" });
   }
@@ -291,9 +340,21 @@ export const deleteProduct = async (req, res) => {
     if (!product)
       return res.status(404).json({ error: "Producto no encontrado" });
 
+    // Guardar referencias a las imágenes antes de eliminar
+    const imagesToDelete = product.images || [];
+    
+    // Eliminar el producto de la base de datos
     await product.destroy();
-    res.json({ message: "Producto eliminado" });
+    
+    // Eliminar todas las imágenes del sistema de archivos
+    if (imagesToDelete.length > 0) {
+      await deleteMultipleImages(imagesToDelete);
+      console.log(`✓ Eliminadas ${imagesToDelete.length} imagen(es) del producto`);
+    }
+    
+    res.json({ message: "Producto eliminado correctamente" });
   } catch (err) {
+    console.error(err);
     res.status(500).json({ error: "Error al eliminar producto" });
   }
 };

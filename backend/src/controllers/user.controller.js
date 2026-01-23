@@ -180,8 +180,6 @@ export const deleteUser = async (req, res) => {
   }
 };
 
-// ============ NUEVOS CONTROLADORES ============
-
 // Cambiar contraseña (usuario autenticado)
 export const changePassword = async (req, res) => {
   const errors = validationResult(req);
