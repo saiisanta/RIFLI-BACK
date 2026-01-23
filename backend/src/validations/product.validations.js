@@ -53,7 +53,12 @@ export const validateProduct = [
   body('cost_price')
     .optional({ checkFalsy: true })
     .toFloat()
-    .isFloat({ min: 0 }).withMessage('El precio de costo debe ser mayor o igual a 0'),
+    .custom((value, { req }) => {
+      if (value && parseFloat(value) > parseFloat(req.body.price)) {
+        throw new Error('El precio de costo no puede ser mayor al precio de venta');
+      }
+      return true;
+    }),
   
   body('discount_percentage')
     .optional({ checkFalsy: true })

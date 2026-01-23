@@ -14,17 +14,6 @@ import fs from 'fs';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-console.log('📁 __dirname:', __dirname);
-console.log('📁 Ruta completa de imágenes:', path.join(__dirname, 'public/images'));
-
-const imgPath = path.join(__dirname, 'public/images/products');
-console.log('📁 ¿Existe carpeta products?:', fs.existsSync(imgPath));
-
-if (fs.existsSync(imgPath)) {
-  const files = fs.readdirSync(imgPath);
-  console.log('📁 Archivos en products:', files.slice(0, 5)); // Muestra los primeros 5
-}
-
 dotenv.config();
 
 import { 

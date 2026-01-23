@@ -1,3 +1,4 @@
+// controllers/product.controller.js
 import Product from "../models/Product.js";
 import Category from "../models/Category.js";
 import Brand from "../models/Brand.js";
