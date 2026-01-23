@@ -10,36 +10,25 @@ import { Op } from 'sequelize';
 // Registro con verificación de email
 export const register = async (req, res) => {
   const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return res.status(400).json({ errors: errors.array() }); 
-  }
+  if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
 
- const { first_name, last_name, email, password, phone } = req.body;
-  let user;
+  const { first_name, last_name, email, password, phone } = req.body;
+  const transaction = await sequelize.transaction();
 
   try {
-    const userExist = await User.findOne({ where: { email } });
+    const userExist = await User.findOne({ where: { email }, transaction });
     if (userExist) {
+      await transaction.rollback();
       return res.status(400).json({ error: 'El email ya está registrado' });
     }
 
-    // const documentExists = await User.findOne({ where: { document_number: document_number } });
-    // if (documentExists) {
-    //   return res.status(400).json({ error: 'El número de documento ya está registrado' });
-    // }
-
     const verificationToken = crypto.randomBytes(32).toString('hex');
-    const verificationTokenHash = crypto
-      .createHash('sha256')
-      .update(verificationToken)
-      .digest('hex');
-
+    const verificationTokenHash = crypto.createHash('sha256').update(verificationToken).digest('hex');
     const hashedPassword = await bcrypt.hash(password, 10);
-    user = await User.create({
+
+    const user = await User.create({
       first_name,
       last_name,
-      // document_type,
-      // document_number,
       email,
       password: hashedPassword,
       phone,
@@ -47,26 +36,32 @@ export const register = async (req, res) => {
       is_verified: false,
       verification_token: verificationTokenHash,
       verification_token_expires: Date.now() + 24 * 60 * 60 * 1000
-    });
+    }, { transaction });
 
-    await sendVerificationEmail({
-      to: email,
-      verificationToken: verificationToken,
-      userName: `${first_name} ${last_name}`
-    });
-
-    res.status(201).json({ 
-      message: 'Usuario creado. Por favor verificá tu email para activar tu cuenta.',
-      email: email
-    });
-  } catch (err) {
-    console.error(err);
-    
-    // Si falla el email eliminar el usuario creado
-    if (user) {
-      await user.destroy();
+    // Intentar enviar el email
+    try {
+      await sendVerificationEmail({
+        to: email,
+        verificationToken: verificationToken,
+        userName: `${first_name} ${last_name}`
+      });
+      
+      // Si el email se envía con éxito, guardamos el usuario
+      await transaction.commit();
+      
+      res.status(201).json({ 
+        message: 'Usuario creado. Por favor verificá tu email para activar tu cuenta.',
+        email: email
+      });
+    } catch (emailError) {
+      // Si falla el envío del email, abortamos la creación del usuario
+      await transaction.rollback();
+      console.error('Error enviando email:', emailError);
+      return res.status(500).json({ error: 'Error al enviar el email de verificación. Inténtalo de nuevo.' });
     }
-    
+  } catch (err) {
+    if (!transaction.finished) await transaction.rollback();
+    console.error(err);
     res.status(500).json({ error: 'Error al registrar usuario' });
   }
 };

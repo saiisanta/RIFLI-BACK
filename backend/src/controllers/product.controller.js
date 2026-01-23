@@ -91,58 +91,47 @@ export const getProductById = async (req, res) => {
 };
 
 export const createProduct = async (req, res) => {
-
-  //DEBUG 
-  console.log("=== BACKEND DEBUG ===");
-  console.log("Content-Type:", req.headers["content-type"]);
-  console.log("req.files:", req.files);
-  console.log("req.body:", req.body);
-  
   const errors = validationResult(req);
-  if (!errors.isEmpty())
-    return res.status(400).json({ errors: errors.array() });
+  if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
 
+  const transaction = await sequelize.transaction();
   try {
-    const category = await Category.findByPk(req.body.category_id);
-    if (!category)
+    const category = await Category.findByPk(req.body.category_id, { transaction });
+    if (!category) {
+      await transaction.rollback();
       return res.status(400).json({ error: "Categoría no encontrada" });
+    }
 
-    const brand = await Brand.findByPk(req.body.brand_id);
-    if (!brand) return res.status(400).json({ error: "Marca no encontrada" });
+    const brand = await Brand.findByPk(req.body.brand_id, { transaction });
+    if (!brand) {
+      await transaction.rollback();
+      return res.status(400).json({ error: "Marca no encontrada" });
+    }
 
-    const images = req.files
-      ? req.files.map((f) => `/images/products/${f.filename}`)
-      : [];
-      
-    const mainImage = req.files?.[0]
-      ? `/images/products/${req.files[0].filename}`
-      : null;
+    const images = req.files ? req.files.map((f) => `/images/products/${f.filename}`) : [];
+    const mainImage = images.length > 0 ? images[0] : null;
 
-    const specifications = req.body.specifications
-      ? JSON.parse(req.body.specifications)
-      : null;
+    let specifications = null;
+    if (req.body.specifications) {
+      specifications = typeof req.body.specifications === "string" 
+        ? JSON.parse(req.body.specifications) 
+        : req.body.specifications;
+    }
 
     const product = await Product.create({
-      name: req.body.name,
-      sku: req.body.sku || null,
-      short_description: req.body.short_description || null,
-      long_description: req.body.long_description || null,
-      category_id: req.body.category_id,
-      brand_id: req.body.brand_id,
+      ...req.body,
       price: parseFloat(req.body.price),
       cost_price: req.body.cost_price ? parseFloat(req.body.cost_price) : null,
-      discount_percentage: req.body.discount_percentage
-        ? parseFloat(req.body.discount_percentage)
-        : 0,
+      discount_percentage: parseFloat(req.body.discount_percentage || 0),
       stock: parseInt(req.body.stock) || 0,
       min_stock: parseInt(req.body.min_stock) || 5,
       specifications,
       images: images.length > 0 ? images : null,
       main_image: mainImage,
-      meta_title: req.body.meta_title || null,
-      meta_description: req.body.meta_description || null,
       is_active: req.body.is_active !== undefined ? req.body.is_active : true,
-    });
+    }, { transaction });
+
+    await transaction.commit();
 
     const newProduct = await Product.findByPk(product.id, {
       include: [
@@ -153,6 +142,12 @@ export const createProduct = async (req, res) => {
 
     res.status(201).json(newProduct);
   } catch (err) {
+    await transaction.rollback();
+    // Limpieza de emergencia: borrar fotos si la DB falló
+    if (req.files && req.files.length > 0) {
+      const pathsToDelete = req.files.map(f => `/images/products/${f.filename}`);
+      await deleteMultipleImages(pathsToDelete);
+    }
     console.error(err);
     res.status(500).json({ error: "Error al crear producto" });
   }
@@ -160,11 +155,9 @@ export const createProduct = async (req, res) => {
 
 export const updateProduct = async (req, res) => {
   const errors = validationResult(req);
-  if (!errors.isEmpty())
-    return res.status(400).json({ errors: errors.array() });
+  if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
 
   const transaction = await sequelize.transaction();
-
   try {
     const product = await Product.findByPk(req.params.id, { transaction });
     if (!product) {
@@ -172,165 +165,62 @@ export const updateProduct = async (req, res) => {
       return res.status(404).json({ error: "Producto no encontrado" });
     }
 
-    // Validar categoría si se proporciona
+    // Validaciones de FK (Categoría y Marca)
     if (req.body.category_id) {
-      const category = await Category.findByPk(req.body.category_id, {
-        transaction,
-      });
-      if (!category) {
-        await transaction.rollback();
-        return res.status(400).json({ error: "Categoría no encontrada" });
-      }
+      const cat = await Category.findByPk(req.body.category_id, { transaction });
+      if (!cat) { await transaction.rollback(); return res.status(400).json({ error: "Categoría no encontrada" }); }
     }
 
-    // Validar marca si se proporciona
-    if (req.body.brand_id) {
-      const brand = await Brand.findByPk(req.body.brand_id, { transaction });
-      if (!brand) {
-        await transaction.rollback();
-        return res.status(400).json({ error: "Marca no encontrada" });
-      }
-    }
-
-    // Manejo de imágenes
-    let images = product.images || [];
+    let images = [...(product.images || [])];
     let mainImage = product.main_image;
-    const imagesToDelete = []; // Array para almacenar imágenes a eliminar
+    const imagesToDeletePhysical = [];
 
-    // Agregar nuevas imágenes
+    // 1. Agregar nuevas imágenes (Unificado a /images/products/)
     if (req.files && req.files.length > 0) {
-      const newImages = req.files.map((f) => `/images/${f.filename}`);
+      const newImages = req.files.map((f) => `/images/products/${f.filename}`);
       images = [...images, ...newImages];
-
-      // Si no hay imagen principal, usar la primera
-      if (!mainImage && newImages.length > 0) {
-        mainImage = newImages[0];
-      }
+      if (!mainImage) mainImage = newImages[0];
     }
 
-    // Eliminar imágenes
+    // 2. Remover imágenes solicitadas
     if (req.body.remove_images) {
-      try {
-        const imagesToRemove = JSON.parse(req.body.remove_images);
-        
-        // Agregar las imágenes a eliminar al array
-        imagesToDelete.push(...imagesToRemove);
-        
-        // Filtrar las imágenes del producto
-        images = images.filter((img) => !imagesToRemove.includes(img));
-
-        // Si se eliminó la imagen principal, asignar otra
-        if (imagesToRemove.includes(mainImage)) {
-          mainImage = images.length > 0 ? images[0] : null;
-        }
-      } catch (e) {
-        await transaction.rollback();
-        return res
-          .status(400)
-          .json({ error: "Formato inválido de remove_images" });
+      const toRemove = JSON.parse(req.body.remove_images);
+      imagesToDeletePhysical.push(...toRemove);
+      images = images.filter(img => !toRemove.includes(img));
+      if (toRemove.includes(mainImage)) {
+        mainImage = images.length > 0 ? images[0] : null;
       }
     }
 
-    // Establecer nueva imagen principal
+    // 3. Cambiar imagen principal
     if (req.body.set_main_image && images.includes(req.body.set_main_image)) {
       mainImage = req.body.set_main_image;
     }
 
-    // Parsear specifications si viene como string
-    let specifications = product.specifications;
-    if (req.body.specifications) {
-      try {
-        specifications =
-          typeof req.body.specifications === "string"
-            ? JSON.parse(req.body.specifications)
-            : req.body.specifications;
-      } catch (e) {
-        await transaction.rollback();
-        return res
-          .status(400)
-          .json({ error: "Formato inválido de specifications" });
-      }
-    }
-
-    // Actualizar producto
-    await product.update(
-      {
-        name: req.body.name || product.name,
-        sku: req.body.sku !== undefined ? req.body.sku : product.sku,
-        short_description:
-          req.body.short_description !== undefined
-            ? req.body.short_description
-            : product.short_description,
-        long_description:
-          req.body.long_description !== undefined
-            ? req.body.long_description
-            : product.long_description,
-        category_id: req.body.category_id || product.category_id,
-        brand_id: req.body.brand_id || product.brand_id,
-        price: req.body.price ? parseFloat(req.body.price) : product.price,
-        cost_price:
-          req.body.cost_price !== undefined
-            ? req.body.cost_price
-              ? parseFloat(req.body.cost_price)
-              : null
-            : product.cost_price,
-        discount_percentage:
-          req.body.discount_percentage !== undefined
-            ? parseFloat(req.body.discount_percentage)
-            : product.discount_percentage,
-        stock:
-          req.body.stock !== undefined
-            ? parseInt(req.body.stock)
-            : product.stock,
-        min_stock:
-          req.body.min_stock !== undefined
-            ? parseInt(req.body.min_stock)
-            : product.min_stock,
-        specifications,
-        images: images.length > 0 ? images : null,
-        main_image: mainImage,
-        meta_title:
-          req.body.meta_title !== undefined
-            ? req.body.meta_title
-            : product.meta_title,
-        meta_description:
-          req.body.meta_description !== undefined
-            ? req.body.meta_description
-            : product.meta_description,
-        is_active:
-          req.body.is_active !== undefined
-            ? req.body.is_active
-            : product.is_active,
-      },
-      { transaction }
-    );
+    await product.update({
+      ...req.body,
+      images: images.length > 0 ? images : null,
+      main_image: mainImage,
+      specifications: req.body.specifications ? JSON.parse(req.body.specifications) : product.specifications
+    }, { transaction });
 
     await transaction.commit();
 
-    // Eliminar las imágenes del sistema de archivos DESPUÉS de hacer commit
-    if (imagesToDelete.length > 0) {
-      await deleteMultipleImages(imagesToDelete);
+    // Solo borramos del disco tras un commit exitoso
+    if (imagesToDeletePhysical.length > 0) {
+      await deleteMultipleImages(imagesToDeletePhysical);
     }
 
-    // Recargar producto con relaciones
-    const updatedProduct = await Product.findByPk(product.id, {
-      include: [
-        { model: Category, as: "category", attributes: ["id", "name", "icon"] },
-        { model: Brand, as: "brand", attributes: ["id", "name", "logo_url"] },
-      ],
+    const updated = await Product.findByPk(product.id, {
+      include: [{ model: Category, as: "category" }, { model: Brand, as: "brand" }]
     });
-
-    res.json(updatedProduct);
+    res.json(updated);
   } catch (err) {
     await transaction.rollback();
-    
-    // Si hubo error y se subieron nuevas imágenes, eliminarlas
-    if (req.files && req.files.length > 0) {
-      const newImages = req.files.map((f) => `/images/${f.filename}`);
-      await deleteMultipleImages(newImages);
+    if (req.files) {
+      const paths = req.files.map(f => `/images/products/${f.filename}`);
+      await deleteMultipleImages(paths);
     }
-    
-    console.error(err);
     res.status(500).json({ error: "Error al actualizar producto" });
   }
 };
