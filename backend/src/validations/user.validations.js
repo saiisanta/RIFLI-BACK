@@ -46,10 +46,6 @@ export const validateUpdateProfile = [
     .optional()
     .trim()
     .matches(/^\+?[0-9\s\-()]+$/).withMessage('Número de teléfono inválido'),
-  body('avatar_url')
-    .optional()
-    .trim()
-    .isURL().withMessage('URL de avatar inválida'),
   body('document_type')
     .optional()
     .isIn(['DNI', 'CUIL', 'CUIT']).withMessage('El tipo de documento debe ser DNI, CUIL o CUIT'),
