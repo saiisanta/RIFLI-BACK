@@ -15,7 +15,7 @@ router.post(
   '/',
   authenticateToken,
   authorizeRole('ADMIN'),
-  uploadCategory.single('icon'),
+  uploadCategory,
   validateCategory,
   categoryController.createCategory
 );
@@ -24,7 +24,7 @@ router.put(
   '/:id',
   authenticateToken,
   authorizeRole('ADMIN'),
-  uploadCategory.single('icon'),
+  uploadCategory,
   validateCategory,
   categoryController.updateCategory
 );

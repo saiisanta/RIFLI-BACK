@@ -15,7 +15,7 @@ router.post(
   '/',
   authenticateToken,
   authorizeRole('ADMIN'),
-  uploadBrand.single('logo_url'),
+  uploadBrand,
   validateBrand,
   brandController.createBrand
 );
@@ -24,7 +24,7 @@ router.put(
   '/:id',
   authenticateToken,
   authorizeRole('ADMIN'),
-  uploadBrand.single('logo_url'),
+  uploadBrand,
   validateBrand,
   brandController.updateBrand
 );

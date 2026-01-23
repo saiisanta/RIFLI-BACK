@@ -2,7 +2,7 @@
 import express from 'express';
 import * as productController from '../controllers/product.controller.js';
 import { authenticateToken, authorizeRole } from '../middlewares/auth.middleware.js';
-import upload from '../middlewares/upload.middleware.js';
+import { uploadProduct } from '../middlewares/upload.middleware.js';
 import { validateProduct, validateProductUpdate } from '../validations/product.validations.js';
 
 const router = express.Router();
@@ -18,9 +18,9 @@ router.post(
   '/',
   authenticateToken,
   authorizeRole('ADMIN'),
-  upload.array('images', 5), // <--- Multer DEBE ir aquí
+  uploadProduct,
   (req, res, next) => {
-    // ESTE LOG SÍ DEBERÍA VERSE SI MULTER FUNCIONA
+    // LOG SÍ MULTER FUNCIONA
     console.log('¿Hay body?:', req.body);
     next();
   },
@@ -36,7 +36,7 @@ router.put(
   '/:id',
   authenticateToken,
   authorizeRole('ADMIN'),
-  upload.array('images', 5),
+  uploadProduct,
   validateProductUpdate,
   productController.updateProduct
 );
