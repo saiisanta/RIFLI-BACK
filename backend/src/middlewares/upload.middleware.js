@@ -51,7 +51,7 @@ const createUploader = (folder) => multer({
 export const uploadProduct = createUploader('products').array('images', 5);
 
 // Para brands: un solo archivo
-export const uploadBrand = createUploader('brands').single('logo');
+export const uploadBrand = createUploader('brands').single('logo_url');
 
 // Para categories: un solo archivo
 export const uploadCategory = createUploader('categories').single('icon');
