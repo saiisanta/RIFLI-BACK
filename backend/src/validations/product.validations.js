@@ -1,3 +1,4 @@
+// validations/product.validations.js
 import { body } from 'express-validator';
 import validateFields from '../middlewares/validateFields.middleware.js';
 import Product from '../models/Product.js';

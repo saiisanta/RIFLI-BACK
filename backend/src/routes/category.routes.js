@@ -1,39 +1,25 @@
 import express from 'express';
-import * as categoryController from '../controllers/category.controller.js';
+import { 
+  getAllCategories,
+  getCategoryById, 
+  createCategory, 
+  updateCategory, 
+  deleteCategory } 
+  from '../controllers/category.controller.js';
 import { authenticateToken, authorizeRole } from '../middlewares/auth.middleware.js';
 import { uploadCategory } from '../middlewares/upload.middleware.js';
 import { validateCategory } from '../validations/category.validations.js';
+import { validateId } from '../validations/id.validation.js';
 
 const router = express.Router();
 
-// Públicas
-router.get('/', categoryController.getAllCategories);
-router.get('/:id', categoryController.getCategoryById);
+// ========== Rutas públicas ==========
+router.get('/', getAllCategories);
+router.get('/:id', getCategoryById);
 
-// Protegidas (admin)
-router.post(
-  '/',
-  authenticateToken,
-  authorizeRole('ADMIN'),
-  uploadCategory,
-  validateCategory,
-  categoryController.createCategory
-);
-
-router.put(
-  '/:id',
-  authenticateToken,
-  authorizeRole('ADMIN'),
-  uploadCategory,
-  validateCategory,
-  categoryController.updateCategory
-);
-
-router.delete(
-  '/:id',
-  authenticateToken,
-  authorizeRole('ADMIN'),
-  categoryController.deleteCategory
-);
+// ========== Rutas de administrador ==========
+router.post('/', authenticateToken, authorizeRole('ADMIN'), uploadCategory, validateCategory, createCategory);
+router.put('/:id', authenticateToken, authorizeRole('ADMIN'), uploadCategory, validateId, validateCategory, updateCategory);
+router.delete('/:id', authenticateToken, authorizeRole('ADMIN'), validateId, deleteCategory);
 
 export default router;

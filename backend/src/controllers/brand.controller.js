@@ -69,10 +69,9 @@ export const getBrandById = async (req, res) => {
 // Crear marca
 export const createBrand = async (req, res) => {
   const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return res.status(400).json({ errors: errors.array() });
-  }
+  if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
 
+  const transaction = await sequelize.transaction();
   try {
     const { name } = req.body;
     
@@ -82,17 +81,23 @@ export const createBrand = async (req, res) => {
       name,
       logo_url,
       is_active: true
-    });
+    }, { transaction });
     
+    await transaction.commit();
     res.status(201).json(newBrand);
   } catch (err) {
-    console.error(err);
+    await transaction.rollback();
     
-    // Error de clave única
+    // Si la DB falla, borramos la imagen que Multer ya había guardado
+    if (req.file) {
+      await deleteImage(`/images/brands/${req.file.filename}`);
+    }
+
     if (err.name === 'SequelizeUniqueConstraintError') {
       return res.status(400).json({ error: 'Ya existe una marca con ese nombre' });
     }
     
+    console.error(err);
     res.status(500).json({ error: 'Error al crear la marca' });
   }
 };
@@ -100,12 +105,9 @@ export const createBrand = async (req, res) => {
 // Actualizar marca
 export const updateBrand = async (req, res) => {
   const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return res.status(400).json({ errors: errors.array() });
-  }
+  if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
 
   const transaction = await sequelize.transaction();
-
   try {
     const brand = await Brand.findByPk(req.params.id, { transaction });
     
@@ -114,45 +116,38 @@ export const updateBrand = async (req, res) => {
       return res.status(404).json({ error: 'Marca no encontrada' });
     }
     
-    const { name, website, is_active } = req.body;
+    const { name, is_active } = req.body;
     
-    // Manejar logo
     let logo_url = brand.logo_url;
     if (req.file) {
-      // Guardar referencia al logo anterior
       const oldLogo = brand.logo_url;
-      
       logo_url = `/images/brands/${req.file.filename}`;
       
-      // Eliminar logo anterior si existe
-      if (oldLogo) {
-        deleteImage(oldLogo);
-      }
+      // Si la actualización es exitosa, el logo viejo se borra DESPUÉS del update
+      if (oldLogo) await deleteImage(oldLogo);
     }
     
     await brand.update({
       name: name || brand.name,
       logo_url,
-      website: website !== undefined ? website : brand.website,
       is_active: is_active !== undefined ? is_active : brand.is_active
     }, { transaction });
     
     await transaction.commit();
-    
     res.json(brand);
   } catch (err) {
     await transaction.rollback();
-    console.error(err);
     
-    // Si hubo error y se subió una nueva imagen, eliminarla
+    // Si falla el update, borramos la imagen NUEVA que intentamos subir
     if (req.file) {
-      deleteImage(`/images/brands/${req.file.filename}`);
+      await deleteImage(`/images/brands/${req.file.filename}`);
     }
-    
+
     if (err.name === 'SequelizeUniqueConstraintError') {
       return res.status(400).json({ error: 'Ya existe una marca con ese nombre' });
     }
     
+    console.error(err);
     res.status(500).json({ error: 'Error al actualizar la marca' });
   }
 };

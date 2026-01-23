@@ -1,39 +1,25 @@
 import express from 'express';
-import * as brandController from '../controllers/brand.controller.js';
+import { 
+  createBrand,
+  updateBrand,
+  deleteBrand,
+  getAllBrands,
+  getBrandById
+} from '../controllers/brand.controller.js';
 import { authenticateToken, authorizeRole } from '../middlewares/auth.middleware.js';
 import { uploadBrand } from '../middlewares/upload.middleware.js';
 import { validateBrand } from '../validations/brands.validations.js';
+import { validateId } from '../validations/id.validation.js';
 
 const router = express.Router();
 
-// Públicas
-router.get('/', brandController.getAllBrands);
-router.get('/:id', brandController.getBrandById);
+// ========== Rutas públicas ==========
+router.get('/', getAllBrands);
+router.get('/:id', getBrandById);
 
-// Protegidas (admin)
-router.post(
-  '/',
-  authenticateToken,
-  authorizeRole('ADMIN'),
-  uploadBrand,
-  validateBrand,
-  brandController.createBrand
-);
-
-router.put(
-  '/:id',
-  authenticateToken,
-  authorizeRole('ADMIN'),
-  uploadBrand,
-  validateBrand,
-  brandController.updateBrand
-);
-
-router.delete(
-  '/:id',
-  authenticateToken,
-  authorizeRole('ADMIN'),
-  brandController.deleteBrand
-);
+// ========== Rutas de administrador ==========
+router.post('/', authenticateToken, authorizeRole('ADMIN'), uploadBrand, validateBrand, createBrand);
+router.put('/:id', authenticateToken, authorizeRole('ADMIN'), uploadBrand, validateId, validateBrand, updateBrand);
+router.delete('/:id', authenticateToken, authorizeRole('ADMIN'), validateId, deleteBrand);
 
 export default router;
