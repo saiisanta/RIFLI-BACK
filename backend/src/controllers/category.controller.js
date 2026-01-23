@@ -104,13 +104,14 @@ export const createCategory = async (req, res) => {
     return res.status(400).json({ errors: errors.array() });
   }
 
+  const transaction = await sequelize.transaction();
   try {
     const { name, description, parent_id } = req.body;
     
-    // Si tiene parent_id, verificar que exista
     if (parent_id) {
-      const parentCategory = await Category.findByPk(parent_id);
+      const parentCategory = await Category.findByPk(parent_id, { transaction });
       if (!parentCategory) {
+        await transaction.rollback();
         return res.status(400).json({ error: 'Categoría padre no encontrada' });
       }
     }
@@ -123,10 +124,13 @@ export const createCategory = async (req, res) => {
       parent_id: parent_id || null,
       icon,
       is_active: true
-    });
+    }, { transaction });
     
+    await transaction.commit();
     res.status(201).json(newCategory);
   } catch (err) {
+    await transaction.rollback();
+    if (req.file) await deleteImage(`/images/categories/${req.file.filename}`);
     console.error(err);
     res.status(500).json({ error: 'Error al crear la categoría' });
   }
@@ -135,87 +139,66 @@ export const createCategory = async (req, res) => {
 // Actualizar categoría
 export const updateCategory = async (req, res) => {
   const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return res.status(400).json({ errors: errors.array() });
-  }
+  if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
 
   const transaction = await sequelize.transaction();
-
   try {
     const category = await Category.findByPk(req.params.id, { transaction });
-    
     if (!category) {
       await transaction.rollback();
-      return res.status(404).json({ error: 'Categoría no encontrada' });
+      return res.status(404).json({ error: 'Categoría encontrada' });
     }
-    
+
     const { name, description, parent_id, is_active } = req.body;
-    
-    // Validar que no se asigne a sí misma como padre
-    if (parent_id && parseInt(parent_id) === category.id) {
+    const newParentId = parent_id !== undefined ? (parent_id || null) : category.parent_id;
+
+    // 1. Evitar que sea su propio padre
+    if (newParentId && parseInt(newParentId) === category.id) {
       await transaction.rollback();
       return res.status(400).json({ error: 'Una categoría no puede ser su propia categoría padre' });
     }
-    
-    // Validar que no se cree un ciclo
-    if (parent_id) {
-      const parentCategory = await Category.findByPk(parent_id, { transaction });
-      if (!parentCategory) {
-        await transaction.rollback();
-        return res.status(400).json({ error: 'Categoría padre no encontrada' });
-      }
-      
-      // Verificar que el padre no sea una subcategoría de esta categoría
-      let current = parentCategory;
-      while (current.parent_id) {
-        if (current.parent_id === category.id) {
+
+    // 2. Prevenir ciclos (Solo si el parent_id cambió)
+    if (newParentId && newParentId !== category.parent_id) {
+      let currentParent = await Category.findByPk(newParentId, { transaction });
+      while (currentParent) {
+        if (currentParent.id === category.id) {
           await transaction.rollback();
           return res.status(400).json({ error: 'No se puede crear un ciclo de categorías' });
         }
-        current = await Category.findByPk(current.parent_id, { transaction });
+        if (!currentParent.parent_id) break;
+        currentParent = await Category.findByPk(currentParent.parent_id, { transaction });
       }
     }
-    
-    // Manejar icono
+
     let icon = category.icon;
     if (req.file) {
-      // Guardar referencia al icono anterior
       const oldIcon = category.icon;
-      
       icon = `/images/categories/${req.file.filename}`;
-      
-      // Eliminar icono anterior si existe
-      if (oldIcon) {
-        deleteImage(oldIcon);
-      }
+      if (oldIcon) await deleteImage(oldIcon);
     }
-    
+
     await category.update({
       name: name || category.name,
       description: description !== undefined ? description : category.description,
-      parent_id: parent_id !== undefined ? (parent_id || null) : category.parent_id,
+      parent_id: newParentId,
       icon,
       is_active: is_active !== undefined ? is_active : category.is_active
     }, { transaction });
-    
+
     await transaction.commit();
     
-    const updatedCategory = await Category.findByPk(category.id, {
+    // Devolver objeto actualizado con relaciones
+    const result = await Category.findByPk(category.id, {
       include: [
         { model: Category, as: 'parent', attributes: ['id', 'name'] },
         { model: Category, as: 'subcategories', attributes: ['id', 'name'] }
       ]
     });
-    
-    res.json(updatedCategory);
+    res.json(result);
   } catch (err) {
     await transaction.rollback();
-    
-    // Si hubo error y se subió una nueva imagen, eliminarla
-    if (req.file) {
-      deleteImage(`/images/categories/${req.file.filename}`);
-    }
-    
+    if (req.file) await deleteImage(`/images/categories/${req.file.filename}`);
     console.error(err);
     res.status(500).json({ error: 'Error al actualizar la categoría' });
   }

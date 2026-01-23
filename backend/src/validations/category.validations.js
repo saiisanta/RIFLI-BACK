@@ -1,4 +1,3 @@
-// validations/category.validations.js
 import { body } from 'express-validator';
 import validateFields from '../middlewares/validateFields.middleware.js';
 
@@ -14,14 +13,16 @@ export const validateCategory = [
     .isLength({ max: 500 }).withMessage('La descripción debe tener máximo 500 caracteres'),
   
   body('parent_id')
-    .optional({ checkFalsy: true })
+    // Convierte "" o "null" en null real
+    .customSanitizer(value => (value === '' || value === 'null' ? null : value))
+    .optional({ nullable: true })
     .toInt()
-    .isInt({ min: 1 }).withMessage('ID de categoría padre inválido'),
-  
-//   body('order')
-//     .optional({ checkFalsy: true })
-//     .toInt()
-//     .isInt({ min: 0 }).withMessage('El orden debe ser un número positivo'),
+    .custom((value) => {
+      if (value !== null && isNaN(value)) {
+        throw new Error('ID de categoría padre inválido');
+      }
+      return true;
+    }),
   
   body('is_active')
     .optional({ checkFalsy: true })
@@ -30,4 +31,3 @@ export const validateCategory = [
   
   validateFields
 ];
-
