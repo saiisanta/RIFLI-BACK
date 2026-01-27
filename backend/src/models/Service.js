@@ -7,10 +7,6 @@ const Service = sequelize.define('Service', {
     type: DataTypes.STRING(255),
     allowNull: false
   },
-  // slug: {
-  //   type: DataTypes.STRING(255),
-  //   unique: true
-  // },
 
   // Tipo de servicio
   type: {
@@ -28,10 +24,10 @@ const Service = sequelize.define('Service', {
 
   // Visual
   icon: {
-    type: DataTypes.STRING(50), // Nombre del icono
-    comment: 'Ejemplo: "zap", "shield", "flame"'
+    type: DataTypes.STRING(500),
+    comment: 'Ruta del archivo SVG/PNG del icono'
   },
-  image_url: {
+  images: {
     type: DataTypes.STRING(500)
   },
 
@@ -71,7 +67,6 @@ const Service = sequelize.define('Service', {
   indexes: [
     { fields: ['type'] },
     { fields: ['is_active'] },
-    // { fields: ['slug'] }
   ]
 });
 

@@ -51,14 +51,15 @@ const createUploader = (folder) => multer({
 // Para productos: permite múltiples archivos (hasta 5 imágenes)
 export const uploadProduct = createUploader('products').array('images', 5);
 
-// Para brands: un solo archivo
 export const uploadBrand = createUploader('brands').single('logo_url');
 
-// Para categories: un solo archivo
 export const uploadCategory = createUploader('categories').single('icon');
 
-// Para avatars: un solo archivo
 export const uploadAvatar = createUploader('avatars').single('avatar');
 
-// Export por defecto (para compatibilidad)
+export const uploadService = createUploader('services').fields([
+  { name: 'images', maxCount: 1 },
+  { name: 'icon', maxCount: 1 }
+]);
+
 export default uploadProduct;
