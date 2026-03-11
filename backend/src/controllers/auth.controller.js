@@ -221,6 +221,26 @@ res.json({
   }
 };
 
+export const getCurrentUser = async (req, res) => {
+  try {
+    // req.user viene del middleware authenticateToken { id, role }
+    const user = await User.findByPk(req.user.id, {
+      attributes: { exclude: ['password'] }
+      // Si quieres incluir direcciones:
+      // include: [{ model: Address, as: 'Addresses' }]
+    });
+
+    if (!user) {
+      return res.status(404).json({ error: 'Usuario no encontrado' });
+    }
+
+    res.json({ user });
+  } catch (error) {
+    console.error('Error en getCurrentUser:', error);
+    res.status(500).json({ error: 'Error al obtener usuario' });
+  }
+};
+
 // Logout
 export const logout = (req, res) => {
   res.clearCookie('token');

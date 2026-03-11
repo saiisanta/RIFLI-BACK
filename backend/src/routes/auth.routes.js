@@ -3,10 +3,12 @@ import express from 'express';
 import { 
   register, 
   login, 
-  logout, 
+  logout,
+  getCurrentUser,
   verifyEmail, 
   resendVerification 
 } from '../controllers/auth.controller.js';
+import { authenticateToken } from '../middlewares/auth.middleware.js';
 import { 
   validateRegister,
   validateLogin, 
@@ -24,5 +26,8 @@ router.post('/resend-verification', validateResendEmail, resendVerification);
 // ========== Login y Logout ==========
 router.post('/login', validateLogin, login);
 router.post('/logout', logout);
+
+// ========== Usuario actual ==========
+router.get('/me', authenticateToken, getCurrentUser);
 
 export default router;
