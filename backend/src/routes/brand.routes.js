@@ -11,16 +11,17 @@ import { authenticateToken, authorizeRole } from '../middlewares/auth.middleware
 import { uploadBrand } from '../middlewares/upload.middleware.js';
 import { validateBrand } from '../validations/brands.validations.js';
 import { validateId } from '../validations/id.validation.js';
+import { validateBrandName } from '../middlewares/preValidation.middleware.js';
 
 const router = express.Router();
 
 // ========== Rutas públicas ==========
 router.get('/', getAllBrands);
-router.get('/:id', validateId,getBrandById);
+router.get('/:id', validateId, getBrandById);
 
 // ========== Rutas de administrador ==========
-router.post('/', authenticateToken, authorizeRole('ADMIN'), uploadBrand, validateBrand, createBrand);
-router.put('/:id', authenticateToken, authorizeRole('ADMIN'), uploadBrand, validateId, validateBrand, updateBrand);
+router.post('/', authenticateToken, authorizeRole('ADMIN'), uploadBrand, validateBrandName, validateBrand, createBrand);
+router.put('/:id', authenticateToken, authorizeRole('ADMIN'), uploadBrand, validateBrandName, validateId, validateBrand, updateBrand);
 router.delete('/:id', authenticateToken, authorizeRole('ADMIN'), validateId, deleteBrand);
 
 export default router;

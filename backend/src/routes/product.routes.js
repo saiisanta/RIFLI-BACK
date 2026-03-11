@@ -14,6 +14,7 @@ import { authenticateToken, authorizeRole } from '../middlewares/auth.middleware
 import { uploadProduct } from '../middlewares/upload.middleware.js';
 import { validateProduct, validateProductUpdate } from '../validations/product.validations.js';
 import { validateId } from '../validations/id.validation.js';
+import { validateProductReferences } from '../middlewares/preValidation.middleware.js';
 
 const router = express.Router();
 
@@ -23,12 +24,12 @@ router.get('/stats/dashboard', authenticateToken, authorizeRole('ADMIN'), getPro
 
 // ========== Crud General ==========
 router.get('/', getAllProducts);
-router.post('/',authenticateToken,authorizeRole('ADMIN'),uploadProduct,validateProduct, createProduct);
+router.post('/',authenticateToken,authorizeRole('ADMIN'), uploadProduct, validateProductReferences, validateProduct, createProduct);
 
 // ========== Rutas por ID ==========
 router.get('/:id', validateId, getProductById);
 router.get('/:id/related', validateId, getRelatedProducts);
-router.put('/:id', authenticateToken, authorizeRole('ADMIN'), uploadProduct, validateId, validateProductUpdate, updateProduct);
+router.put('/:id', authenticateToken, authorizeRole('ADMIN'), uploadProduct, validateProductReferences, validateId, validateProductUpdate, updateProduct);
 router.delete('/:id', authenticateToken, authorizeRole('ADMIN'), validateId, deleteProduct);
 
 export default router;

@@ -6,6 +6,7 @@ import { validationResult } from 'express-validator';
 import User from '../models/User.js';
 import { sendVerificationEmail } from '../services/email.service.js';
 import { Op } from 'sequelize';
+import sequelize from '../config/db.js';
 
 // Registro con verificación de email
 export const register = async (req, res) => {

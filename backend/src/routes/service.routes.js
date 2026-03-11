@@ -15,17 +15,19 @@ import {
   validateUpdateService,
   validateReorderServices
 } from '../validations/service.validations.js';
+import { validateId } from '../validations/id.validation.js';
+import { validateServiceType } from '../middlewares/preValidation.middleware.js';
 
 const router = express.Router();
 
 // ========== Rutas Públicas ==========
 router.get('/', getAllServices);
-router.get('/:id', getServiceById);
+router.get('/:id', validateId, getServiceById);
 
 // ========== Rutas Protegidas ==========
-router.post('/', authenticateToken, authorizeRole('ADMIN'), uploadService, validateCreateService, createService);
-router.put('/:id', authenticateToken, authorizeRole('ADMIN'), uploadService, validateUpdateService, updateService);
-router.delete('/:id', authenticateToken, authorizeRole('ADMIN'), deleteService);
+router.post('/', authenticateToken, authorizeRole('ADMIN'), uploadService, validateServiceType, validateCreateService, createService);
+router.put('/:id', authenticateToken, authorizeRole('ADMIN'), validateId, validateServiceType, uploadService, validateUpdateService, updateService);
+router.delete('/:id', authenticateToken, authorizeRole('ADMIN'), validateId, deleteService);
 router.patch('/reorder', authenticateToken, authorizeRole('ADMIN'), validateReorderServices, reorderServices);
 
 export default router;
