@@ -35,8 +35,8 @@ router.post('/reset-password/:token', validateResetPassword,resetPassword);
 // ========== Rutas del usuario autenticado ==========
 router.get('/me', authenticateToken, getProfile);
 router.put('/me', authenticateToken, validateUpdateProfile, updateProfile);
-router.put('/change-password', authenticateToken, validateChangePassword, changePassword);
 router.delete('/me', authenticateToken, validateDeleteAccount, deleteOwnAccount);
+router.put('/change-password', authenticateToken, validateChangePassword, changePassword);
 router.patch('/avatar', authenticateToken, uploadAvatar, updateAvatar); 
 router.delete('/avatar', authenticateToken, deleteAvatar); 
 

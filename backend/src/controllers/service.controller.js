@@ -26,6 +26,14 @@ const deleteImage = async (imagePath) => {
   }
 };
 
+// Función auxiliar para eliminar múltiples imágenes
+const deleteMultipleImages = async (imagePaths) => {
+  if (!imagePaths || imagePaths.length === 0) return;
+  
+  const deletePromises = imagePaths.map(imagePath => deleteImage(imagePath));
+  await Promise.all(deletePromises);
+};
+
 // Obtener todos los servicios
 export const getAllServices = async (req, res) => {
   try {
@@ -82,16 +90,20 @@ export const createService = async (req, res) => {
   }
 
   try {
-    const { name, type, short_description, long_description, features, is_active, order } = req.body;
+    const { name, type, short_description, long_description, features, form_schema, is_active, order } = req.body;
     
-    // Procesar las imágenes si se subieron
+
+    // Procesar las imágenes si se subieron 
     let images = null;
     let icon = null;
     
     if (req.files) {
-      if (req.files.image && req.files.image[0]) {
-        images = `/images/services/${req.files.image[0].filename}`;
+      // Múltiples imágenes
+      if (req.files.images && req.files.images.length > 0) {
+        images = req.files.images.map(file => `/images/services/${file.filename}`);
       }
+      
+      // Un solo icono
       if (req.files.icon && req.files.icon[0]) {
         icon = `/images/services/${req.files.icon[0].filename}`;
       }
@@ -107,14 +119,25 @@ export const createService = async (req, res) => {
       }
     }
     
+    // Parsear form_schema si viene como string
+    let parsedFormSchema = form_schema;
+    if (typeof form_schema === 'string') {
+      try {
+        parsedFormSchema = JSON.parse(form_schema);
+      } catch (e) {
+        return res.status(400).json({ error: 'Formato inválido de form_schema' });
+      }
+    }
+    
     const newService = await Service.create({
       name,
       type,
       short_description: short_description || null,
       long_description: long_description || null,
       icon,
-      images,
+      images,  
       features: parsedFeatures || null,
+      form_schema: parsedFormSchema || null,
       is_active: is_active !== undefined ? is_active : true,
       order: order || 0
     });
@@ -123,8 +146,9 @@ export const createService = async (req, res) => {
   } catch (err) {
     // Si hubo error y se subieron imágenes, eliminarlas
     if (req.files) {
-      if (req.files.image && req.files.image[0]) {
-        await deleteImage(`/images/services/${req.files.image[0].filename}`);
+      if (req.files.images && req.files.images.length > 0) {
+        const imagePaths = req.files.images.map(file => `/images/services/${file.filename}`);
+        await deleteMultipleImages(imagePaths);
       }
       if (req.files.icon && req.files.icon[0]) {
         await deleteImage(`/images/services/${req.files.icon[0].filename}`);
@@ -153,21 +177,18 @@ export const updateService = async (req, res) => {
       return res.status(404).json({ error: 'Servicio no encontrado' });
     }
 
-    const { name, type, short_description, long_description, features, is_active, order } = req.body;
+    const { name, type, short_description, long_description, features, form_schema, is_active, order, remove_images } = req.body;
     
     // Manejar imágenes
-    let images = service.images;
+    let images = service.images || [];
     let icon = service.icon;
+    const imagesToDeletePhysical = [];
     
+    // 1. Agregar nuevas imágenes
     if (req.files) {
-      // Actualizar imagen principal
-      if (req.files.image && req.files.image[0]) {
-        const oldImage = service.images;
-        images = `/images/services/${req.files.image[0].filename}`;
-        
-        if (oldImage) {
-          await deleteImage(oldImage);
-        }
+      if (req.files.images && req.files.images.length > 0) {
+        const newImages = req.files.images.map(file => `/images/services/${file.filename}`);
+        images = [...images, ...newImages];
       }
       
       // Actualizar icono
@@ -178,6 +199,18 @@ export const updateService = async (req, res) => {
         if (oldIcon) {
           await deleteImage(oldIcon);
         }
+      }
+    }
+    
+    // 2. Remover imágenes solicitadas
+    if (remove_images) {
+      try {
+        const toRemove = JSON.parse(remove_images);
+        imagesToDeletePhysical.push(...toRemove);
+        images = images.filter(img => !toRemove.includes(img));
+      } catch (e) {
+        await transaction.rollback();
+        return res.status(400).json({ error: 'Formato inválido de remove_images' });
       }
     }
     
@@ -196,19 +229,40 @@ export const updateService = async (req, res) => {
       }
     }
     
+    // Parsear form_schema si viene como string
+    let parsedFormSchema = service.form_schema;
+    if (form_schema !== undefined) {
+      if (typeof form_schema === 'string') {
+        try {
+          parsedFormSchema = JSON.parse(form_schema);
+        } catch (e) {
+          await transaction.rollback();
+          return res.status(400).json({ error: 'Formato inválido de form_schema' });
+        }
+      } else {
+        parsedFormSchema = form_schema;
+      }
+    }
+    
     await service.update({
       name: name || service.name,
       type: type || service.type,
       short_description: short_description !== undefined ? short_description : service.short_description,
       long_description: long_description !== undefined ? long_description : service.long_description,
       icon,
-      images,
+      images: images.length > 0 ? images : null,
       features: parsedFeatures,
+      form_schema: parsedFormSchema,
       is_active: is_active !== undefined ? is_active : service.is_active,
       order: order !== undefined ? order : service.order
     }, { transaction });
     
     await transaction.commit();
+    
+    // Solo borramos del disco tras un commit exitoso
+    if (imagesToDeletePhysical.length > 0) {
+      await deleteMultipleImages(imagesToDeletePhysical);
+    }
     
     res.json(service);
   } catch (err) {
@@ -216,8 +270,9 @@ export const updateService = async (req, res) => {
     
     // Si hubo error y se subieron nuevas imágenes, eliminarlas
     if (req.files) {
-      if (req.files.image && req.files.image[0]) {
-        await deleteImage(`/images/services/${req.files.image[0].filename}`);
+      if (req.files.images && req.files.images.length > 0) {
+        const imagePaths = req.files.images.map(file => `/images/services/${file.filename}`);
+        await deleteMultipleImages(imagePaths);
       }
       if (req.files.icon && req.files.icon[0]) {
         await deleteImage(`/images/services/${req.files.icon[0].filename}`);
@@ -239,14 +294,14 @@ export const deleteService = async (req, res) => {
     }
 
     // Guardar referencias a las imágenes antes de eliminar
-    const imageToDelete = service.images;
+    const imagesToDelete = service.images || [];
     const iconToDelete = service.icon;
     
     await service.destroy();
     
-    // Eliminar imágenes si existen
-    if (imageToDelete) {
-      await deleteImage(imageToDelete);
+    // Eliminar todas las imágenes
+    if (imagesToDelete.length > 0) {
+      await deleteMultipleImages(imagesToDelete);
     }
     if (iconToDelete) {
       await deleteImage(iconToDelete);

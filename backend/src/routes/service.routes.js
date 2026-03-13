@@ -16,7 +16,7 @@ import {
   validateReorderServices
 } from '../validations/service.validations.js';
 import { validateId } from '../validations/id.validation.js';
-import { validateServiceType } from '../middlewares/preValidation.middleware.js';
+import { validateServiceBasics } from '../middlewares/preValidation.middleware.js';
 
 const router = express.Router();
 
@@ -25,8 +25,8 @@ router.get('/', getAllServices);
 router.get('/:id', validateId, getServiceById);
 
 // ========== Rutas Protegidas ==========
-router.post('/', authenticateToken, authorizeRole('ADMIN'), uploadService, validateServiceType, validateCreateService, createService);
-router.put('/:id', authenticateToken, authorizeRole('ADMIN'), validateId, validateServiceType, uploadService, validateUpdateService, updateService);
+router.post('/', authenticateToken, authorizeRole('ADMIN'), uploadService, validateServiceBasics, validateCreateService, createService);
+router.put('/:id', authenticateToken, authorizeRole('ADMIN'), validateId, validateServiceBasics, uploadService, validateUpdateService, updateService);
 router.delete('/:id', authenticateToken, authorizeRole('ADMIN'), validateId, deleteService);
 router.patch('/reorder', authenticateToken, authorizeRole('ADMIN'), validateReorderServices, reorderServices);
 

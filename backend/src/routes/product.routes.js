@@ -24,7 +24,7 @@ router.get('/stats/dashboard', authenticateToken, authorizeRole('ADMIN'), getPro
 
 // ========== Crud General ==========
 router.get('/', getAllProducts);
-router.post('/',authenticateToken,authorizeRole('ADMIN'), uploadProduct, validateProductReferences, validateProduct, createProduct);
+router.post('/', authenticateToken,authorizeRole('ADMIN'), uploadProduct, validateProductReferences, validateProduct, createProduct);
 
 // ========== Rutas por ID ==========
 router.get('/:id', validateId, getProductById);

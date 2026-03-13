@@ -58,7 +58,7 @@ export const uploadCategory = createUploader('categories').single('icon');
 export const uploadAvatar = createUploader('avatars').single('avatar');
 
 export const uploadService = createUploader('services').fields([
-  { name: 'images', maxCount: 1 },
+  { name: 'images', maxCount: 5 },
   { name: 'icon', maxCount: 1 }
 ]);
 

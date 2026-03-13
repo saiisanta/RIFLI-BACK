@@ -8,15 +8,17 @@ export const validateCreateService = [
     .notEmpty().withMessage('El nombre es requerido')
     .isLength({ min: 3, max: 255 }).withMessage('El nombre debe tener entre 3 y 255 caracteres'),
   body('type')
+    .trim()
     .notEmpty().withMessage('El tipo de servicio es requerido')
-    .isIn(['ELECTRICITY', 'SECURITY', 'GAS']).withMessage('Tipo de servicio inválido'),
+    .isLength({ min: 3, max: 255 }).withMessage('El tipo de servicio debe tener entre 3 y 255 caracteres'),
   body('short_description')
     .optional()
     .trim()
     .isLength({ max: 500 }).withMessage('La descripción corta no puede exceder 500 caracteres'),
   body('long_description')
     .optional()
-    .trim(),
+    .trim()
+    .isLength({ max: 5000 }).withMessage('La descripción larga no puede exceder 5000 caracteres'),
   body('features')
     .optional()
     .custom((value) => {
@@ -49,15 +51,17 @@ export const validateUpdateService = [
     .trim()
     .isLength({ min: 3, max: 255 }).withMessage('El nombre debe tener entre 3 y 255 caracteres'),
   body('type')
-    .optional()
-    .isIn(['ELECTRICITY', 'SECURITY', 'GAS']).withMessage('Tipo de servicio inválido'),
+    .trim()
+    .notEmpty().withMessage('El tipo de servicio es requerido')
+    .isLength({ min: 3, max: 255 }).withMessage('El tipo de servicio debe tener entre 3 y 255 caracteres'),
   body('short_description')
     .optional()
     .trim()
     .isLength({ max: 500 }).withMessage('La descripción corta no puede exceder 500 caracteres'),
   body('long_description')
     .optional()
-    .trim(),
+    .trim()
+    .isLength({ max: 5000 }).withMessage('La descripción larga no puede exceder 5000 caracteres'),
   body('features')
     .optional()
     .custom((value) => {
