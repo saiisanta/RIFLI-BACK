@@ -43,10 +43,7 @@ export const validateCreateService = [
 ];
 
 export const validateUpdateService = [
-  body('name')
-    .optional()
-    .trim()
-    .isLength({ min: 3, max: 255 }).withMessage('El nombre debe tener entre 3 y 255 caracteres'),
+
   body('type')
     .trim()
     .notEmpty().withMessage('El tipo de servicio es requerido')
