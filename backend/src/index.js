@@ -82,7 +82,7 @@ const PORT = process.env.PORT || 4001;
 const startServer = async () => {
   try {
     // 'alter: false' no modifica la estructura de la base de datos.
-    await sequelize.sync({ alter: true }); 
+    await sequelize.sync({ alter: false }); 
 
     console.log('✅ Conexión a la base de datos establecida y verificada');
 
