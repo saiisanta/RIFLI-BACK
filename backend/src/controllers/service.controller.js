@@ -90,7 +90,7 @@ export const createService = async (req, res) => {
   }
 
   try {
-    const { name, type, short_description, long_description, features, form_schema, is_active, order } = req.body;
+    const { type, short_description, long_description, features, form_schema, is_active, order } = req.body;
     
 
     // Procesar las imágenes si se subieron 
@@ -130,7 +130,6 @@ export const createService = async (req, res) => {
     }
     
     const newService = await Service.create({
-      name,
       type,
       short_description: short_description || null,
       long_description: long_description || null,
@@ -177,7 +176,7 @@ export const updateService = async (req, res) => {
       return res.status(404).json({ error: 'Servicio no encontrado' });
     }
 
-    const { name, type, short_description, long_description, features, form_schema, is_active, order, remove_images } = req.body;
+    const { type, short_description, long_description, features, form_schema, is_active, order, remove_images } = req.body;
     
     // Manejar imágenes
     let images = service.images || [];
@@ -245,7 +244,6 @@ export const updateService = async (req, res) => {
     }
     
     await service.update({
-      name: name || service.name,
       type: type || service.type,
       short_description: short_description !== undefined ? short_description : service.short_description,
       long_description: long_description !== undefined ? long_description : service.long_description,

@@ -104,20 +104,9 @@ export const validateCategoryParent = async (req, res, next) => {
 // ========== Validaciones para Services ==========
 export const validateServiceBasics = async (req, res, next) => {
   try {
-    const { name, type, features, form_schema } = req.body;
+    const {  type, features, form_schema } = req.body;
     
-    // Validar nombre
-    if (!name || name.trim().length === 0) {
-      await cleanupUploadedFiles(req);
-      return res.status(400).json({ error: 'El nombre del servicio es requerido' });
-    }
-    
-    if (name.trim().length < 3 || name.trim().length > 255) {
-      await cleanupUploadedFiles(req);
-      return res.status(400).json({ 
-        error: 'El nombre debe tener entre 3 y 255 caracteres' 
-      });
-    }
+
     
     // Validar type
     if (!type || type.trim().length === 0) {
@@ -205,6 +194,12 @@ export const validateServiceBasics = async (req, res, next) => {
             });
           }
           
+          if (field.comment !== undefined && typeof field.comment !== 'string') {
+          await cleanupUploadedFiles(req);
+          return res.status(400).json({ 
+            error: `Campo ${i}: "comment" debe ser string si se proporciona` 
+          });
+        }
           // Validar que select y radio tengan options
           if ((field.type === 'select' || field.type === 'radio')) {
             if (!field.options || !Array.isArray(field.options) || field.options.length === 0) {
@@ -214,7 +209,8 @@ export const validateServiceBasics = async (req, res, next) => {
               });
             }
           }
-          
+
+
           // Validar que array tenga itemSchema
           if (field.type === 'array') {
             if (!field.itemSchema || !Array.isArray(field.itemSchema)) {
