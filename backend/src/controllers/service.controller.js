@@ -55,7 +55,7 @@ export const getAllServices = async (req, res) => {
       where,
       order: [
         ['order', 'ASC'],
-        ['name', 'ASC']
+        ['type', 'ASC']
       ]
     });
     
