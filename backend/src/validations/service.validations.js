@@ -3,7 +3,6 @@ import { body } from 'express-validator';
 import validateFields from '../middlewares/validateFields.middleware.js';
 
 export const validateCreateService = [
- 
   body('type')
     .trim()
     .notEmpty().withMessage('El tipo de servicio es requerido')
@@ -43,8 +42,8 @@ export const validateCreateService = [
 ];
 
 export const validateUpdateService = [
-
   body('type')
+    .optional()
     .trim()
     .notEmpty().withMessage('El tipo de servicio es requerido')
     .isLength({ min: 3, max: 255 }).withMessage('El tipo de servicio debe tener entre 3 y 255 caracteres'),

@@ -106,19 +106,20 @@ export const validateServiceBasics = async (req, res, next) => {
   try {
     const {  type, features, form_schema } = req.body;
     
+    const isUpdate = req.method === 'PUT' || req.method === 'PATCH';
 
-    
-    // Validar type
-    if (!type || type.trim().length === 0) {
-      await cleanupUploadedFiles(req);
-      return res.status(400).json({ error: 'El tipo de servicio es requerido' });
+   // 1. Validar presencia solo si NO es update
+    if (!isUpdate && (!type || type.trim().length === 0)) {
+        await cleanupUploadedFiles(req);
+        return res.status(400).json({ error: 'El tipo de servicio es requerido' });
     }
-    
-    if (type.trim().length > 100) {
-      await cleanupUploadedFiles(req);
-      return res.status(400).json({ 
-        error: 'El tipo de servicio no puede exceder 100 caracteres' 
-      });
+
+    // 2. Validar largo SOLO SI viene el type (en create o en update opcional)
+    if (type && type.trim().length > 100) {
+        await cleanupUploadedFiles(req);
+        return res.status(400).json({ 
+            error: 'El tipo de servicio no puede exceder 100 caracteres' 
+        });
     }
     
     // Validar features si existe
