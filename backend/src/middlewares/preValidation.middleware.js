@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import Category from '../models/Category.js';
 import Brand from '../models/Brand.js';
 import fs from 'fs/promises';
@@ -6,13 +5,6 @@ import fsSync from 'fs';
 import path from 'path';
 import Service from '../models/Service.js';
 import Address from '../models/Address.js';
-=======
-import Category from "../models/Category.js";
-import Brand from "../models/Brand.js";
-import fs from "fs/promises";
-import fsSync from "fs";
-import path from "path";
->>>>>>> ffb1717d229577c6947be530eb863db3252dab63
 
 // Función auxiliar para eliminar archivos subidos
 const cleanupUploadedFiles = async (req) => {
