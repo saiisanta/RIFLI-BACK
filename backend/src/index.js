@@ -24,6 +24,7 @@ import cartRoutes from './routes/cart.routes.js';
 import userRoutes from './routes/user.routes.js';
 import brandRoutes from './routes/brand.routes.js';
 import categoryRoutes from './routes/category.routes.js';
+import addressRoutes from './routes/address.routes.js';
 
 const app = express();
 
@@ -32,6 +33,7 @@ app.get('/', (req, res) => {
   res.json({
     message: 'Welcome to the TPI API',
     endpoints: {
+      addresses: '/api/addresses',
       auth: '/api/auth',
       products: '/api/products',
       services: '/api/services',
@@ -61,6 +63,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Rutas
+app.use('/api/addresses', addressRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/services', serviceRoutes);
@@ -82,7 +85,7 @@ const PORT = process.env.PORT || 4001;
 const startServer = async () => {
   try {
     // 'alter: false' no modifica la estructura de la base de datos.
-    await sequelize.sync({ alter: false }); 
+    await sequelize.sync({ alter: true }); 
 
     console.log('✅ Conexión a la base de datos establecida y verificada');
 

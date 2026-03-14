@@ -3,6 +3,8 @@ import Brand from '../models/Brand.js';
 import fs from 'fs/promises';
 import fsSync from 'fs';
 import path from 'path';
+import Service from '../models/Service.js';
+import Address from '../models/Address.js';
 
 // Función auxiliar para eliminar archivos subidos
 const cleanupUploadedFiles = async (req) => {
@@ -260,5 +262,49 @@ export const validateBrandName = async (req, res, next) => {
     await cleanupUploadedFiles(req);
     console.error(error);
     res.status(500).json({ error: 'Error en validación de marca' });
+  }
+};
+
+// ========== Validaciones para Quotes ==========
+export const validateQuoteReferences = async (req, res, next) => {
+  try {
+    const { service_id, address_id } = req.body;
+    
+    // Validar service_id
+    if (!service_id) {
+      return res.status(400).json({ error: 'service_id es requerido' });
+    }
+    
+    const service = await Service.findByPk(service_id);
+    if (!service) {
+      return res.status(400).json({ error: 'Servicio no encontrado' });
+    }
+    
+    if (!service.is_active) {
+      return res.status(400).json({ error: 'El servicio no está activo' });
+    }
+    
+    // Validar address_id
+    if (!address_id) {
+      return res.status(400).json({ error: 'address_id es requerido' });
+    }
+    
+    const address = await Address.findOne({
+      where: {
+        id: address_id,
+        user_id: req.user.id  // Solo puede usar sus propias direcciones
+      }
+    });
+    
+    if (!address) {
+      return res.status(400).json({ 
+        error: 'Dirección no encontrada o no autorizada' 
+      });
+    }
+    
+    next();
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Error en validación de referencias' });
   }
 };

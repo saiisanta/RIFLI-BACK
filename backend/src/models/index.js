@@ -42,7 +42,7 @@ Service.hasMany(Quote, { foreignKey: 'service_id', as: 'quotes' });
 Quote.belongsTo(Service, { foreignKey: 'service_id', as: 'service' });
 
 Address.hasMany(Quote, { foreignKey: 'address_id', as: 'quotes' });
-Quote.belongsTo(Address, { foreignKey: 'address_id', as: 'workAddress' });
+Quote.belongsTo(Address, { foreignKey: 'address_id', as: 'address' });
 
 // ============ ORDER RELATIONS ============
 Order.belongsTo(Address, { foreignKey: 'address_id', as: 'shippingAddress' });

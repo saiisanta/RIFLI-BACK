@@ -42,6 +42,17 @@ const Service = sequelize.define('Service', {
   {
     "fields": [
       {
+        "id": "Calidad_materiales",
+        ""type": "select",
+        "options": ["Económico", "Intermedio", "Calidad"],
+        "placeholder": "Seleccione la calidad de materiales",
+        "comment": "Comentario de ayuda para aclarar lo que el usuario debe escribir en el campo (No obligatorio)"
+        "label": "Calidad de materiales",
+         "validation": {
+          "required": true
+        }
+      }
+      {
         "id": "tipo_instalacion",
         "type": "select",
         "comment": "Comentario de ayuda para aclarar lo que el usuario debe escribir en el campo (No obligatorio)"
