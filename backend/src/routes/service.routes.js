@@ -26,7 +26,7 @@ router.get('/:id', validateId, getServiceById);
 
 // ========== Rutas Protegidas ==========
 router.post('/', authenticateToken, authorizeRole('ADMIN'), uploadService, validateServiceBasics, validateCreateService, createService);
-router.put('/:id', authenticateToken, authorizeRole('ADMIN'), validateId, validateServiceBasics, uploadService, validateUpdateService, updateService);
+router.put('/:id', authenticateToken, authorizeRole('ADMIN'), validateId, uploadService, validateServiceBasics, validateUpdateService, updateService);
 router.delete('/:id', authenticateToken, authorizeRole('ADMIN'), validateId, deleteService);
 router.patch('/reorder', authenticateToken, authorizeRole('ADMIN'), validateReorderServices, reorderServices);
 

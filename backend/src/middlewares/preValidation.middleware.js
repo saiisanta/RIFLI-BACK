@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import Category from '../models/Category.js';
 import Brand from '../models/Brand.js';
 import fs from 'fs/promises';
@@ -5,12 +6,23 @@ import fsSync from 'fs';
 import path from 'path';
 import Service from '../models/Service.js';
 import Address from '../models/Address.js';
+=======
+import Category from "../models/Category.js";
+import Brand from "../models/Brand.js";
+import fs from "fs/promises";
+import fsSync from "fs";
+import path from "path";
+>>>>>>> ffb1717d229577c6947be530eb863db3252dab63
 
 // Función auxiliar para eliminar archivos subidos
 const cleanupUploadedFiles = async (req) => {
   try {
     // Caso 1: .fields() - Para services (req.files es un objeto)
-    if (req.files && typeof req.files === 'object' && !Array.isArray(req.files)) {
+    if (
+      req.files &&
+      typeof req.files === "object" &&
+      !Array.isArray(req.files)
+    ) {
       for (const fieldName in req.files) {
         const filesArray = req.files[fieldName];
         for (const file of filesArray) {
@@ -41,7 +53,7 @@ const cleanupUploadedFiles = async (req) => {
       }
     }
   } catch (error) {
-    console.error('❌ Error en cleanup:', error);
+    console.error("❌ Error en cleanup:", error);
   }
 };
 
@@ -49,34 +61,34 @@ const cleanupUploadedFiles = async (req) => {
 export const validateProductReferences = async (req, res, next) => {
   try {
     const { category_id, brand_id } = req.body;
-    
+
     if (!category_id) {
       await cleanupUploadedFiles(req);
-      return res.status(400).json({ error: 'category_id es requerido' });
+      return res.status(400).json({ error: "category_id es requerido" });
     }
-    
+
     const category = await Category.findByPk(category_id);
     if (!category) {
       await cleanupUploadedFiles(req);
-      return res.status(400).json({ error: 'Categoría no encontrada' });
+      return res.status(400).json({ error: "Categoría no encontrada" });
     }
-    
+
     if (!brand_id) {
       await cleanupUploadedFiles(req);
-      return res.status(400).json({ error: 'brand_id es requerido' });
+      return res.status(400).json({ error: "brand_id es requerido" });
     }
-    
+
     const brand = await Brand.findByPk(brand_id);
     if (!brand) {
       await cleanupUploadedFiles(req);
-      return res.status(400).json({ error: 'Marca no encontrada' });
+      return res.status(400).json({ error: "Marca no encontrada" });
     }
-    
+
     next();
   } catch (error) {
     await cleanupUploadedFiles(req);
     console.error(error);
-    res.status(500).json({ error: 'Error en validación de referencias' });
+    res.status(500).json({ error: "Error en validación de referencias" });
   }
 };
 
@@ -84,159 +96,181 @@ export const validateProductReferences = async (req, res, next) => {
 export const validateCategoryParent = async (req, res, next) => {
   try {
     const { parent_id } = req.body;
-    
+
     if (!parent_id) {
       return next();
     }
-    
+
     const parentCategory = await Category.findByPk(parent_id);
     if (!parentCategory) {
       await cleanupUploadedFiles(req);
-      return res.status(400).json({ error: 'Categoría padre no encontrada' });
+      return res.status(400).json({ error: "Categoría padre no encontrada" });
     }
-    
+
     next();
   } catch (error) {
     await cleanupUploadedFiles(req);
     console.error(error);
-    res.status(500).json({ error: 'Error en validación de categoría padre' });
+    res.status(500).json({ error: "Error en validación de categoría padre" });
   }
 };
 
 // ========== Validaciones para Services ==========
 export const validateServiceBasics = async (req, res, next) => {
   try {
-    const {  type, features, form_schema } = req.body;
-    
-    const isUpdate = req.method === 'PUT' || req.method === 'PATCH';
+    const { type, features, form_schema } = req.body;
 
-   // 1. Validar presencia solo si NO es update
+    const isUpdate = req.method === "PUT" || req.method === "PATCH";
+
+    // 1. Validar presencia solo si NO es update
     if (!isUpdate && (!type || type.trim().length === 0)) {
-        await cleanupUploadedFiles(req);
-        return res.status(400).json({ error: 'El tipo de servicio es requerido' });
+      await cleanupUploadedFiles(req);
+      return res
+        .status(400)
+        .json({ error: "El tipo de servicio es requerido" });
     }
 
     // 2. Validar largo SOLO SI viene el type (en create o en update opcional)
     if (type && type.trim().length > 100) {
-        await cleanupUploadedFiles(req);
-        return res.status(400).json({ 
-            error: 'El tipo de servicio no puede exceder 100 caracteres' 
-        });
+      await cleanupUploadedFiles(req);
+      return res.status(400).json({
+        error: "El tipo de servicio no puede exceder 100 caracteres",
+      });
     }
-    
+
     // Validar features si existe
     if (features) {
       try {
         let parsedFeatures = features;
-        if (typeof features === 'string') {
+        if (typeof features === "string") {
           parsedFeatures = JSON.parse(features);
         }
-        
+
         if (!Array.isArray(parsedFeatures)) {
           await cleanupUploadedFiles(req);
-          return res.status(400).json({ error: 'Features debe ser un array' });
+          return res.status(400).json({ error: "Features debe ser un array" });
         }
-        
-        if (!parsedFeatures.every(item => typeof item === 'string')) {
+
+        if (!parsedFeatures.every((item) => typeof item === "string")) {
           await cleanupUploadedFiles(req);
-          return res.status(400).json({ 
-            error: 'Todos los elementos de features deben ser strings' 
+          return res.status(400).json({
+            error: "Todos los elementos de features deben ser strings",
           });
         }
       } catch (e) {
         await cleanupUploadedFiles(req);
-        return res.status(400).json({ error: 'Features debe ser un JSON válido' });
+        return res
+          .status(400)
+          .json({ error: "Features debe ser un JSON válido" });
       }
     }
-    
+
     // Validar form_schema si existe
     if (form_schema) {
       try {
         let schema = form_schema;
-        if (typeof form_schema === 'string') {
+        if (typeof form_schema === "string") {
           schema = JSON.parse(form_schema);
         }
-        
+
         if (!schema.fields || !Array.isArray(schema.fields)) {
           await cleanupUploadedFiles(req);
-          return res.status(400).json({ 
-            error: 'form_schema debe contener un array "fields"' 
+          return res.status(400).json({
+            error: 'form_schema debe contener un array "fields"',
           });
         }
-        
+
         // Validar estructura básica de cada field
         for (let i = 0; i < schema.fields.length; i++) {
           const field = schema.fields[i];
-          
-          if (!field.id || typeof field.id !== 'string') {
+
+          if (!field.id || typeof field.id !== "string") {
             await cleanupUploadedFiles(req);
-            return res.status(400).json({ 
-              error: `Campo ${i}: "id" es requerido y debe ser string` 
+            return res.status(400).json({
+              error: `Campo ${i}: "id" es requerido y debe ser string`,
             });
           }
-          
-          if (!field.type || typeof field.type !== 'string') {
+
+          if (!field.type || typeof field.type !== "string") {
             await cleanupUploadedFiles(req);
-            return res.status(400).json({ 
-              error: `Campo ${i}: "type" es requerido y debe ser string` 
+            return res.status(400).json({
+              error: `Campo ${i}: "type" es requerido y debe ser string`,
             });
           }
-          
-          const validTypes = ['text', 'email', 'tel', 'textarea', 'number', 'select', 'radio', 'checkbox', 'date', 'file', 'array'];
+
+          const validTypes = [
+            "text",
+            "email",
+            "tel",
+            "textarea",
+            "number",
+            "select",
+            "radio",
+            "checkbox",
+            "date",
+            "file",
+            "array",
+          ];
           if (!validTypes.includes(field.type)) {
             await cleanupUploadedFiles(req);
-            return res.status(400).json({ 
-              error: `Campo ${i}: tipo "${field.type}" no es válido. Tipos permitidos: ${validTypes.join(', ')}` 
+            return res.status(400).json({
+              error: `Campo ${i}: tipo "${field.type}" no es válido. Tipos permitidos: ${validTypes.join(", ")}`,
             });
           }
-          
-          if (!field.label || typeof field.label !== 'string') {
+
+          if (!field.label || typeof field.label !== "string") {
             await cleanupUploadedFiles(req);
-            return res.status(400).json({ 
-              error: `Campo ${i}: "label" es requerido y debe ser string` 
+            return res.status(400).json({
+              error: `Campo ${i}: "label" es requerido y debe ser string`,
             });
           }
-          
-          if (field.comment !== undefined && typeof field.comment !== 'string') {
-          await cleanupUploadedFiles(req);
-          return res.status(400).json({ 
-            error: `Campo ${i}: "comment" debe ser string si se proporciona` 
-          });
-        }
+
+          if (
+            field.comment !== undefined &&
+            typeof field.comment !== "string"
+          ) {
+            await cleanupUploadedFiles(req);
+            return res.status(400).json({
+              error: `Campo ${i}: "comment" debe ser string si se proporciona`,
+            });
+          }
           // Validar que select y radio tengan options
-          if ((field.type === 'select' || field.type === 'radio')) {
-            if (!field.options || !Array.isArray(field.options) || field.options.length === 0) {
+          if (field.type === "select" || field.type === "radio") {
+            if (
+              !field.options ||
+              !Array.isArray(field.options) ||
+              field.options.length === 0
+            ) {
               await cleanupUploadedFiles(req);
-              return res.status(400).json({ 
-                error: `Campo ${i}: campos de tipo "${field.type}" deben tener un array "options" con al menos un elemento` 
+              return res.status(400).json({
+                error: `Campo ${i}: campos de tipo "${field.type}" deben tener un array "options" con al menos un elemento`,
               });
             }
           }
 
-
           // Validar que array tenga itemSchema
-          if (field.type === 'array') {
-            if (!field.itemSchema || !Array.isArray(field.itemSchema)) {
+          if (field.type === "array" && field.itemSchema !== undefined) {
+            if (!Array.isArray(field.itemSchema)) {
               await cleanupUploadedFiles(req);
-              return res.status(400).json({ 
-                error: `Campo ${i}: campos de tipo "array" deben tener un array "itemSchema"` 
+              return res.status(400).json({
+                error: `Campo ${i}: "itemSchema" debe ser un array`,
               });
             }
           }
         }
       } catch (e) {
         await cleanupUploadedFiles(req);
-        return res.status(400).json({ 
-          error: 'form_schema debe ser un JSON válido: ' + e.message 
+        return res.status(400).json({
+          error: "form_schema debe ser un JSON válido: " + e.message,
         });
       }
     }
-    
+
     next();
   } catch (error) {
     await cleanupUploadedFiles(req);
     console.error(error);
-    res.status(500).json({ error: 'Error en validación de servicio' });
+    res.status(500).json({ error: "Error en validación de servicio" });
   }
 };
 
@@ -244,24 +278,26 @@ export const validateServiceBasics = async (req, res, next) => {
 export const validateBrandName = async (req, res, next) => {
   try {
     const { name } = req.body;
-    
+
     if (!name || name.trim().length === 0) {
       await cleanupUploadedFiles(req);
-      return res.status(400).json({ error: 'El nombre de la marca es requerido' });
+      return res
+        .status(400)
+        .json({ error: "El nombre de la marca es requerido" });
     }
-    
+
     if (name.length < 2 || name.length > 100) {
       await cleanupUploadedFiles(req);
-      return res.status(400).json({ 
-        error: 'El nombre de la marca debe tener entre 2 y 100 caracteres' 
+      return res.status(400).json({
+        error: "El nombre de la marca debe tener entre 2 y 100 caracteres",
       });
     }
-    
+
     next();
   } catch (error) {
     await cleanupUploadedFiles(req);
     console.error(error);
-    res.status(500).json({ error: 'Error en validación de marca' });
+    res.status(500).json({ error: "Error en validación de marca" });
   }
 };
 
