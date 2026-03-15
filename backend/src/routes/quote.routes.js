@@ -5,13 +5,17 @@ import {
   getAllQuotes,
   getQuoteById,
   addBudget,
+  uploadBudgetPdf,
   uploadPaymentProof,
   reviewPaymentProof,
   updateQuoteStatus,
   deleteQuote
 } from '../controllers/quote.controller.js';
 import { authenticateToken, authorizeRole } from '../middlewares/auth.middleware.js';
-import { uploadPaymentProof as uploadProof } from '../middlewares/upload.middleware.js';
+import {
+  uploadPaymentProof as uploadProofMiddleware,
+  uploadBudgetPdf as uploadBudgetPdfMiddleware
+} from '../middlewares/upload.middleware.js';
 import { validateQuoteReferences } from '../middlewares/preValidation.middleware.js';
 import {
   validateCreateQuote,
@@ -25,47 +29,43 @@ import { validateId } from '../validations/id.validation.js';
 const router = express.Router();
 
 // ========== Rutas de Cliente ==========
-// Crear cotización (cliente proporciona datos iniciales)
-router.post('/', 
+
+router.post('/',
   authenticateToken,
-  validateQuoteReferences,     
+  validateQuoteReferences,
   validateCreateQuote,
   createQuote
 );
 
-// Ver mis cotizaciones (cliente solo ve las suyas, admin ve todas)
-router.get('/', 
+router.get('/',
   authenticateToken,
   getAllQuotes
 );
 
-// Ver cotización específica
-router.get('/:id', 
+router.get('/:id',
   authenticateToken,
   validateId,
   getQuoteById
 );
 
-// Subir comprobante de pago (seña o pago final)
-router.post('/:id/payment-proof', 
+router.post('/:id/payment-proof',
   authenticateToken,
   validateId,
-  uploadProof,                  
+  uploadProofMiddleware,
   validateUploadProof,
   uploadPaymentProof
 );
 
-// Actualizar estado (cliente puede aceptar/rechazar)
-router.patch('/:id/status', 
+router.patch('/:id/status',
   authenticateToken,
   validateId,
   validateUpdateStatus,
   updateQuoteStatus
 );
 
-// ========== Rutas de Admin/Técnico ==========
-// Agregar presupuesto (materiales + mano de obra)
-router.put('/:id/budget', 
+// ========== Rutas de Admin ==========
+
+router.put('/:id/budget',
   authenticateToken,
   authorizeRole('ADMIN', 'TECHNICIAN'),
   validateId,
@@ -73,8 +73,16 @@ router.put('/:id/budget',
   addBudget
 );
 
-// Aprobar/rechazar comprobante de pago
-router.patch('/:id/review-proof', 
+// NUEVO: subir PDF generado desde el front
+router.post('/:id/budget/pdf',
+  authenticateToken,
+  authorizeRole('ADMIN', 'TECHNICIAN'),
+  validateId,
+  uploadBudgetPdfMiddleware,
+  uploadBudgetPdf
+);
+
+router.patch('/:id/review-proof',
   authenticateToken,
   authorizeRole('ADMIN'),
   validateId,
@@ -82,8 +90,7 @@ router.patch('/:id/review-proof',
   reviewPaymentProof
 );
 
-// Soft delete
-router.delete('/:id', 
+router.delete('/:id',
   authenticateToken,
   authorizeRole('ADMIN'),
   validateId,

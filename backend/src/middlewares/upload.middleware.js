@@ -7,13 +7,10 @@ import fs from 'fs';
 const createStorage = (folder) => {
   return multer.diskStorage({
     destination: function (req, file, cb) {
-      // Cambiar "images" por genérico para soportar PDFs también
       const uploadPath = `public/uploads/${folder}`;
-      
       if (!fs.existsSync(uploadPath)) {
         fs.mkdirSync(uploadPath, { recursive: true });
       }
-      
       cb(null, uploadPath);
     },
     filename: function (req, file, cb) {
@@ -26,12 +23,10 @@ const createStorage = (folder) => {
 
 // ========== FILTROS DE ARCHIVO ==========
 
-// Solo imágenes
 const imageFilter = (req, file, cb) => {
   const allowedTypes = /jpeg|jpg|png|gif|webp|svg/;
   const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
   const mimetype = allowedTypes.test(file.mimetype);
-  
   if (extname && mimetype) {
     cb(null, true);
   } else {
@@ -39,12 +34,10 @@ const imageFilter = (req, file, cb) => {
   }
 };
 
-// Imágenes y PDFs (para comprobantes)
 const proofFilter = (req, file, cb) => {
   const allowedTypes = /jpeg|jpg|png|pdf/;
   const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
   const mimetype = /image\/(jpeg|jpg|png)|application\/pdf/.test(file.mimetype);
-  
   if (extname && mimetype) {
     cb(null, true);
   } else {
@@ -52,56 +45,60 @@ const proofFilter = (req, file, cb) => {
   }
 };
 
+// Solo PDFs — para presupuestos generados desde el front
+const pdfFilter = (req, file, cb) => {
+  const extname = path.extname(file.originalname).toLowerCase() === '.pdf';
+  const mimetype = file.mimetype === 'application/pdf';
+  if (extname && mimetype) {
+    cb(null, true);
+  } else {
+    cb(new Error('Solo se permiten archivos PDF'));
+  }
+};
+
 // ========== LÍMITES ==========
 
-const imageLimits = {
-  fileSize: 5 * 1024 * 1024 // 5MB
-};
-
-const proofLimits = {
-  fileSize: 10 * 1024 * 1024 // 10MB para PDFs
-};
+const imageLimits  = { fileSize: 5  * 1024 * 1024 }; // 5MB
+const proofLimits  = { fileSize: 10 * 1024 * 1024 }; // 10MB
+const budgetLimits = { fileSize: 10 * 1024 * 1024 }; // 10MB
 
 // ========== CONFIGURACIONES BASE ==========
 
-const createImageUploader = (folder) => multer({ 
+const createImageUploader = (folder) => multer({
   storage: createStorage(folder),
   fileFilter: imageFilter,
   limits: imageLimits
 });
 
-const createProofUploader = (folder) => multer({ 
+const createProofUploader = (folder) => multer({
   storage: createStorage(folder),
   fileFilter: proofFilter,
   limits: proofLimits
 });
 
+const createPdfUploader = (folder) => multer({
+  storage: createStorage(folder),
+  fileFilter: pdfFilter,
+  limits: budgetLimits
+});
+
 // ========== EXPORTACIONES ==========
 
-// Para productos: múltiples imágenes
-export const uploadProduct = createImageUploader('products').array('images', 5);
-
-// Para marcas: logo único
-export const uploadBrand = createImageUploader('brands').single('logo_url');
-
-// Para categorías: icono único
+export const uploadProduct  = createImageUploader('products').array('images', 5);
+export const uploadBrand    = createImageUploader('brands').single('logo_url');
 export const uploadCategory = createImageUploader('categories').single('icon');
+export const uploadAvatar   = createImageUploader('avatars').single('avatar');
 
-// Para avatars: imagen única
-export const uploadAvatar = createImageUploader('avatars').single('avatar');
-
-// Para servicios: múltiples imágenes + icono
-export const uploadService = createImageUploader('services').fields([
+export const uploadService  = createImageUploader('services').fields([
   { name: 'images', maxCount: 5 },
-  { name: 'icon', maxCount: 1 }
+  { name: 'icon',   maxCount: 1 }
 ]);
 
-// ========== NUEVO: PARA QUOTES ==========
-
-// Para comprobantes de pago (acepta imágenes y PDFs)
-export const uploadPaymentProof = createProofUploader('proofs').single('proof');
-
-// Para múltiples comprobantes si es necesario
+// Para comprobantes de pago (cliente — acepta imágenes y PDFs)
+export const uploadPaymentProof  = createProofUploader('proofs').single('proof');
 export const uploadPaymentProofs = createProofUploader('proofs').array('proofs', 3);
+
+// Para PDF de presupuesto generado desde el front (admin)
+export const uploadBudgetPdf = createPdfUploader('budgets').single('pdf');
 
 export default uploadProduct;

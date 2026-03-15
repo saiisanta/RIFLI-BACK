@@ -72,7 +72,8 @@ app.use('/api/carts', cartRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/brands', brandRoutes);
 app.use('/api/categories', categoryRoutes);
-app.use('/images', express.static(path.join(__dirname, '../public/images')));
+app.use('/images',   express.static(path.join(__dirname, '../public/images')));
+app.use('/uploads',  express.static(path.join(__dirname, '../public/uploads')));
 
 // Error handling middleware
 app.use((err, req, res, next) => {

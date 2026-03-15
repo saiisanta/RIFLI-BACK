@@ -13,10 +13,8 @@ import path from 'path';
 // Función auxiliar para eliminar archivos
 const deleteFile = async (filePath) => {
   if (!filePath) return;
-  
   try {
     const fullPath = path.join(process.cwd(), 'public', filePath);
-    
     if (fsSync.existsSync(fullPath)) {
       await fs.unlink(fullPath);
       console.log('✓ Archivo eliminado:', fullPath);
@@ -29,10 +27,10 @@ const deleteFile = async (filePath) => {
 // Generar número de cotización único
 const generateQuoteNumber = async () => {
   const year = new Date().getFullYear();
-  const count = await Quote.count({ 
-    where: { 
-      quote_number: { [Op.like]: `QUOTE-${year}-%` } 
-    } 
+  const count = await Quote.count({
+    where: {
+      quote_number: { [Op.like]: `QUOTE-${year}-%` }
+    }
   });
   return `QUOTE-${year}-${String(count + 1).padStart(5, '0')}`;
 };
@@ -46,25 +44,19 @@ export const createQuote = async (req, res) => {
 
   try {
     const { service_id, address_id, service_details, client_notes } = req.body;
-    
-    // Validar que el servicio existe
+
     const service = await Service.findByPk(service_id);
     if (!service) {
       return res.status(404).json({ error: 'Servicio no encontrado' });
     }
-    
-    // Validar que la dirección existe y pertenece al usuario
+
     const address = await Address.findOne({
-      where: { 
-        id: address_id,
-        user_id: req.user.id 
-      }
+      where: { id: address_id, user_id: req.user.id }
     });
     if (!address) {
       return res.status(404).json({ error: 'Dirección no encontrada o no autorizada' });
     }
-    
-    // Parsear service_details si viene como string
+
     let parsedDetails = service_details;
     if (typeof service_details === 'string') {
       try {
@@ -73,10 +65,9 @@ export const createQuote = async (req, res) => {
         return res.status(400).json({ error: 'Formato inválido de service_details' });
       }
     }
-    
-    // Generar número de cotización
+
     const quote_number = await generateQuoteNumber();
-    
+
     const newQuote = await Quote.create({
       client_id: req.user.id,
       service_id,
@@ -87,16 +78,15 @@ export const createQuote = async (req, res) => {
       quote_number,
       status: 'PENDING'
     });
-    
-    // Incluir relaciones en la respuesta
+
     const quoteWithRelations = await Quote.findByPk(newQuote.id, {
       include: [
-        { model: Service, as: 'service', attributes: ['id', 'type'] },
+        { model: Service, as: 'service', attributes: ['id', 'type', 'form_schema'] },
         { model: User, as: 'client', attributes: ['id', 'first_name', 'last_name', 'email'] },
         { model: Address, as: 'address' }
       ]
     });
-    
+
     res.status(201).json(quoteWithRelations);
   } catch (err) {
     console.error(err);
@@ -108,36 +98,35 @@ export const createQuote = async (req, res) => {
 export const getAllQuotes = async (req, res) => {
   try {
     const { status, client_id, service_id, from_date, to_date } = req.query;
-    
+
     const where = {};
-    
-    // Filtros
+
     if (status) where.status = status;
-    if (client_id) where.client_id = client_id;
     if (service_id) where.service_id = service_id;
-    
-    // Filtro por rango de fechas
-    if (from_date || to_date) {
-      where.created_at = {};
-      if (from_date) where.created_at[Op.gte] = new Date(from_date);
-      if (to_date) where.created_at[Op.lte] = new Date(to_date);
-    }
-    
-    // Si es cliente, solo sus cotizaciones
+
+    // Solo admin puede filtrar por client_id arbitrario
     if (req.user.role === 'CLIENT') {
       where.client_id = req.user.id;
+    } else if (client_id) {
+      where.client_id = client_id;
     }
-    
+
+    if (from_date || to_date) {
+      where.createdAt = {};
+      if (from_date) where.createdAt[Op.gte] = new Date(from_date);
+      if (to_date) where.createdAt[Op.lte] = new Date(to_date);
+    }
+
     const quotes = await Quote.findAll({
       where,
       include: [
-        { model: Service, as: 'service', attributes: ['id', 'type'] },
+        { model: Service, as: 'service', attributes: ['id', 'type', 'form_schema'] },
         { model: User, as: 'client', attributes: ['id', 'first_name', 'last_name', 'email'] },
         { model: Address, as: 'address' }
       ],
-      order: [['created_at', 'DESC']]
+      order: [['createdAt', 'DESC']]
     });
-    
+
     res.json(quotes);
   } catch (err) {
     console.error(err);
@@ -155,16 +144,15 @@ export const getQuoteById = async (req, res) => {
         { model: Address, as: 'address' }
       ]
     });
-    
+
     if (!quote) {
       return res.status(404).json({ error: 'Cotización no encontrada' });
     }
-    
-    // Si es cliente, solo puede ver sus propias cotizaciones
+
     if (req.user.role === 'CLIENT' && quote.client_id !== req.user.id) {
       return res.status(403).json({ error: 'No autorizado' });
     }
-    
+
     res.json(quote);
   } catch (err) {
     console.error(err);
@@ -172,7 +160,8 @@ export const getQuoteById = async (req, res) => {
   }
 };
 
-// ========== 4. AGREGAR PRESUPUESTO (ADMIN) ==========
+// ========== 4. AGREGAR / EDITAR PRESUPUESTO (ADMIN) ==========
+// FIX: permite editar cuando status es PENDING o QUOTED
 export const addBudget = async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -183,21 +172,22 @@ export const addBudget = async (req, res) => {
 
   try {
     const quote = await Quote.findByPk(req.params.id, { transaction });
-    
+
     if (!quote) {
       await transaction.rollback();
       return res.status(404).json({ error: 'Cotización no encontrada' });
     }
-    
-    if (quote.status !== 'PENDING') {
+
+    // FIX: permite PENDING y QUOTED (edición del presupuesto)
+    if (!['PENDING', 'QUOTED'].includes(quote.status)) {
       await transaction.rollback();
-      return res.status(400).json({ 
-        error: 'Solo se puede presupuestar cotizaciones en estado PENDING' 
+      return res.status(400).json({
+        error: `No se puede modificar el presupuesto en estado ${quote.status}`
       });
     }
-    
-    const { 
-      materials_budget, 
+
+    const {
+      materials_budget,
       labor_budget,
       discount_percentage,
       tax_percentage,
@@ -205,36 +195,31 @@ export const addBudget = async (req, res) => {
       estimated_completion_days,
       internal_notes
     } = req.body;
-    
-    // Parsear budgets si vienen como string
+
     let parsedMaterials = materials_budget;
     let parsedLabor = labor_budget;
-    
-    if (typeof materials_budget === 'string') {
-      parsedMaterials = JSON.parse(materials_budget);
-    }
-    if (typeof labor_budget === 'string') {
-      parsedLabor = JSON.parse(labor_budget);
-    }
-    
+
+    if (typeof materials_budget === 'string') parsedMaterials = JSON.parse(materials_budget);
+    if (typeof labor_budget === 'string') parsedLabor = JSON.parse(labor_budget);
+
     // Calcular totales
     const materialsTotal = parsedMaterials?.total || 0;
     const laborTotal = parsedLabor?.total || 0;
     const subtotal = materialsTotal + laborTotal;
-    
-    const discountPct = discount_percentage || 0;
+
+    const discountPct = Number(discount_percentage) || 0;
     const discountAmount = subtotal * (discountPct / 100);
-    
-    const taxPct = tax_percentage || 21;
+
+    const taxPct = Number(tax_percentage) || 21;
     const taxableAmount = subtotal - discountAmount;
     const taxAmount = taxableAmount * (taxPct / 100);
-    
+
     const quotedAmount = taxableAmount + taxAmount;
-    
-    const depositPct = quote.deposit_percentage || 50;
+
+    const depositPct = Number(quote.deposit_percentage) || 50;
     const depositAmount = quotedAmount * (depositPct / 100);
     const finalAmount = quotedAmount - depositAmount;
-    
+
     await quote.update({
       materials_budget: parsedMaterials,
       labor_budget: parsedLabor,
@@ -249,20 +234,22 @@ export const addBudget = async (req, res) => {
       final_payment_amount: finalAmount,
       valid_until: valid_until || null,
       estimated_completion_days: estimated_completion_days || null,
-      internal_notes: internal_notes || quote.internal_notes,
-      status: 'QUOTED',
-      quoted_at: new Date()
+      internal_notes: internal_notes !== undefined ? internal_notes : quote.internal_notes,
+      // FIX: solo cambiar a QUOTED si venía de PENDING
+      status: quote.status === 'PENDING' ? 'QUOTED' : quote.status,
+      quoted_at: quote.quoted_at || new Date()
     }, { transaction });
-    
+
     await transaction.commit();
-    
+
     const updatedQuote = await Quote.findByPk(quote.id, {
       include: [
         { model: Service, as: 'service' },
-        { model: User, as: 'client', attributes: ['id', 'first_name', 'last_name', 'email'] }
+        { model: User, as: 'client', attributes: ['id', 'first_name', 'last_name', 'email'] },
+        { model: Address, as: 'address' }
       ]
     });
-    
+
     res.json(updatedQuote);
   } catch (err) {
     await transaction.rollback();
@@ -271,73 +258,91 @@ export const addBudget = async (req, res) => {
   }
 };
 
-// ========== 5. SUBIR COMPROBANTE DE PAGO ==========
+// ========== 5. SUBIR PDF DE PRESUPUESTO (ADMIN) ==========
+// NUEVO: endpoint para guardar el PDF generado desde el front
+export const uploadBudgetPdf = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: 'No se proporcionó ningún archivo PDF' });
+    }
+
+    const quote = await Quote.findByPk(req.params.id);
+    if (!quote) {
+      await deleteFile(`/uploads/budgets/${req.file.filename}`);
+      return res.status(404).json({ error: 'Cotización no encontrada' });
+    }
+
+    // Eliminar PDF anterior si existe
+    if (quote.budget_pdf) {
+      await deleteFile(quote.budget_pdf);
+    }
+
+    const pdfUrl = `/uploads/budgets/${req.file.filename}`;
+    await quote.update({ budget_pdf: pdfUrl });
+
+    res.json({
+      message: 'PDF de presupuesto subido correctamente',
+      pdf_url: pdfUrl
+    });
+  } catch (err) {
+    if (req.file) {
+      await deleteFile(`/uploads/budgets/${req.file.filename}`);
+    }
+    console.error(err);
+    res.status(500).json({ error: 'Error al subir PDF de presupuesto' });
+  }
+};
+
+// ========== 6. SUBIR COMPROBANTE DE PAGO (CLIENTE) ==========
 export const uploadPaymentProof = async (req, res) => {
   try {
-    const { payment_type } = req.body; // 'deposit' o 'final'
-    
+    const { payment_type } = req.body;
+
     if (!req.file) {
       return res.status(400).json({ error: 'No se proporcionó ningún archivo' });
     }
-    
+
     if (!['deposit', 'final'].includes(payment_type)) {
       await deleteFile(`/uploads/proofs/${req.file.filename}`);
       return res.status(400).json({ error: 'payment_type debe ser "deposit" o "final"' });
     }
-    
+
     const quote = await Quote.findByPk(req.params.id);
-    
     if (!quote) {
       await deleteFile(`/uploads/proofs/${req.file.filename}`);
       return res.status(404).json({ error: 'Cotización no encontrada' });
     }
-    
-    // Solo el cliente puede subir comprobantes
+
     if (quote.client_id !== req.user.id) {
       await deleteFile(`/uploads/proofs/${req.file.filename}`);
       return res.status(403).json({ error: 'No autorizado' });
     }
-    
+
     const proofUrl = `/uploads/proofs/${req.file.filename}`;
-    
+
     if (payment_type === 'deposit') {
-      // Eliminar comprobante anterior si existe
-      if (quote.deposit_proof_url) {
-        await deleteFile(quote.deposit_proof_url);
-      }
-      
+      if (quote.deposit_proof_url) await deleteFile(quote.deposit_proof_url);
       await quote.update({
         deposit_proof_url: proofUrl,
         deposit_payment_status: 'PROOF_UPLOADED'
       });
     } else {
-      // Eliminar comprobante anterior si existe
-      if (quote.final_proof_url) {
-        await deleteFile(quote.final_proof_url);
-      }
-      
+      if (quote.final_proof_url) await deleteFile(quote.final_proof_url);
       await quote.update({
         final_proof_url: proofUrl,
         final_payment_status: 'PROOF_UPLOADED'
       });
     }
-    
-    res.json({
-      message: 'Comprobante subido correctamente',
-      proof_url: proofUrl
-    });
+
+    res.json({ message: 'Comprobante subido correctamente', proof_url: proofUrl });
   } catch (err) {
-    // Limpiar archivo si hubo error
-    if (req.file) {
-      await deleteFile(`/uploads/proofs/${req.file.filename}`);
-    }
-    
+    if (req.file) await deleteFile(`/uploads/proofs/${req.file.filename}`);
     console.error(err);
     res.status(500).json({ error: 'Error al subir comprobante' });
   }
 };
 
-// ========== 6. APROBAR/RECHAZAR COMPROBANTE (ADMIN) ==========
+// ========== 7. APROBAR/RECHAZAR COMPROBANTE (ADMIN) ==========
 export const reviewPaymentProof = async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -346,13 +351,12 @@ export const reviewPaymentProof = async (req, res) => {
 
   try {
     const { payment_type, action, rejection_reason } = req.body;
-    
+
     const quote = await Quote.findByPk(req.params.id);
-    
     if (!quote) {
       return res.status(404).json({ error: 'Cotización no encontrada' });
     }
-    
+
     if (payment_type === 'deposit') {
       if (action === 'approve') {
         await quote.update({
@@ -362,7 +366,7 @@ export const reviewPaymentProof = async (req, res) => {
       } else {
         await quote.update({
           deposit_payment_status: 'REJECTED',
-          internal_notes: `${quote.internal_notes || ''}\n[Seña rechazada]: ${rejection_reason}`
+          internal_notes: `${quote.internal_notes || ''}\n[Seña rechazada]: ${rejection_reason}`.trim()
         });
       }
     } else {
@@ -374,11 +378,11 @@ export const reviewPaymentProof = async (req, res) => {
       } else {
         await quote.update({
           final_payment_status: 'REJECTED',
-          internal_notes: `${quote.internal_notes || ''}\n[Pago final rechazado]: ${rejection_reason}`
+          internal_notes: `${quote.internal_notes || ''}\n[Pago final rechazado]: ${rejection_reason}`.trim()
         });
       }
     }
-    
+
     res.json(quote);
   } catch (err) {
     console.error(err);
@@ -386,7 +390,7 @@ export const reviewPaymentProof = async (req, res) => {
   }
 };
 
-// ========== 7. ACTUALIZAR ESTADO ==========
+// ========== 8. ACTUALIZAR ESTADO ==========
 export const updateQuoteStatus = async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -395,29 +399,21 @@ export const updateQuoteStatus = async (req, res) => {
 
   try {
     const { status, rejection_reason } = req.body;
-    
+
     const quote = await Quote.findByPk(req.params.id);
-    
     if (!quote) {
       return res.status(404).json({ error: 'Cotización no encontrada' });
     }
-    
+
     const updates = { status };
-    
-    // Actualizar fechas según el estado
-    if (status === 'ACCEPTED') {
-      updates.accepted_at = new Date();
-    } else if (status === 'REJECTED') {
-      updates.rejected_at = new Date();
-      updates.rejection_reason = rejection_reason;
-    } else if (status === 'IN_PROGRESS') {
-      updates.started_at = new Date();
-    } else if (status === 'COMPLETED') {
-      updates.completed_at = new Date();
-    }
-    
+
+    if (status === 'ACCEPTED')    updates.accepted_at  = new Date();
+    if (status === 'REJECTED')  { updates.rejected_at  = new Date(); updates.rejection_reason = rejection_reason; }
+    if (status === 'IN_PROGRESS') updates.started_at   = new Date();
+    if (status === 'COMPLETED')   updates.completed_at = new Date();
+
     await quote.update(updates);
-    
+
     res.json(quote);
   } catch (err) {
     console.error(err);
@@ -425,27 +421,26 @@ export const updateQuoteStatus = async (req, res) => {
   }
 };
 
-// ========== 8. SOFT DELETE ==========
+// ========== 9. SOFT DELETE ==========
+// FIX: también elimina el budget_pdf
 export const deleteQuote = async (req, res) => {
   try {
     const quote = await Quote.findByPk(req.params.id);
-    
     if (!quote) {
       return res.status(404).json({ error: 'Cotización no encontrada' });
     }
-    
-    // Guardar referencias a archivos antes de eliminar
+
     const filesToDelete = [];
     if (quote.deposit_proof_url) filesToDelete.push(quote.deposit_proof_url);
-    if (quote.final_proof_url) filesToDelete.push(quote.final_proof_url);
-    
-    await quote.destroy(); // Soft delete
-    
-    // Eliminar archivos
+    if (quote.final_proof_url)   filesToDelete.push(quote.final_proof_url);
+    if (quote.budget_pdf)        filesToDelete.push(quote.budget_pdf); // FIX: nuevo
+
+    await quote.destroy();
+
     for (const file of filesToDelete) {
       await deleteFile(file);
     }
-    
+
     res.json({ message: 'Cotización eliminada correctamente' });
   } catch (err) {
     console.error(err);

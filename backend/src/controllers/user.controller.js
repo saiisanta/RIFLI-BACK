@@ -396,7 +396,7 @@ export const updateAvatar = async (req, res) => {
     const oldAvatar = user.avatar_url;
 
     // Asignar nuevo avatar
-    const newAvatar = `/images/avatars/${req.file.filename}`;
+    const newAvatar = `/uploads/avatars/${req.file.filename}`;
     user.avatar_url = newAvatar;
     
     await user.save();
@@ -413,7 +413,7 @@ export const updateAvatar = async (req, res) => {
   } catch (error) {
     // Si hubo error y se subió una imagen nueva, eliminarla
     if (req.file) {
-      await deleteImage(`/images/avatars/${req.file.filename}`);
+      await deleteImage(`/uploads/avatars/${req.file.filename}`);
     }
     
     console.error(error);
