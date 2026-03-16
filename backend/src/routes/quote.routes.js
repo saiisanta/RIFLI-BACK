@@ -33,6 +33,7 @@ const router = express.Router();
 router.post('/',
   authenticateToken,
   validateQuoteReferences,
+  authorizeRole('CLIENT'),
   validateCreateQuote,
   createQuote
 );

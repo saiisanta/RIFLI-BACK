@@ -166,6 +166,11 @@ const Quote = sequelize.define('Quote', {
     type: DataTypes.ENUM('USD', 'ARS'),
     defaultValue: 'ARS'
   },
+    budget_pdf: { 
+    type: DataTypes.STRING(500),
+    allowNull: true,
+    comment: 'URL del PDF del presupuesto detallado generado desde el front'
+  },
 
   // ========== PAGOS - SEÑA (50%) ==========
   deposit_percentage: {
