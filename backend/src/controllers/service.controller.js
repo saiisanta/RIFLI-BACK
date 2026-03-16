@@ -108,13 +108,13 @@ export const createService = async (req, res) => {
       // Múltiples imágenes
       if (req.files.images && req.files.images.length > 0) {
         images = req.files.images.map(
-          (file) => `/images/services/${file.filename}`,
+          (file) => `/uploads/services/${file.filename}`,
         );
       }
 
       // Un solo icono
       if (req.files.icon && req.files.icon[0]) {
-        icon = `/images/services/${req.files.icon[0].filename}`;
+        icon = `/uploads/services/${req.files.icon[0].filename}`;
       }
     }
 
@@ -158,12 +158,12 @@ export const createService = async (req, res) => {
     if (req.files) {
       if (req.files.images && req.files.images.length > 0) {
         const imagePaths = req.files.images.map(
-          (file) => `/images/services/${file.filename}`,
+          (file) => `/uploads/services/${file.filename}`,
         );
         await deleteMultipleImages(imagePaths);
       }
       if (req.files.icon && req.files.icon[0]) {
-        await deleteImage(`/images/services/${req.files.icon[0].filename}`);
+        await deleteImage(`/uploads/services/${req.files.icon[0].filename}`);
       }
     }
 
@@ -209,7 +209,7 @@ export const updateService = async (req, res) => {
     if (req.files) {
       if (req.files.images && req.files.images.length > 0) {
         const newImages = req.files.images.map(
-          (file) => `/images/services/${file.filename}`,
+          (file) => `/uploads/services/${file.filename}`,
         );
         images = [...images, ...newImages];
       }
@@ -217,7 +217,7 @@ export const updateService = async (req, res) => {
       // Actualizar icono
       if (req.files.icon && req.files.icon[0]) {
         const oldIcon = service.icon;
-        icon = `/images/services/${req.files.icon[0].filename}`;
+        icon = `/uploads/services/${req.files.icon[0].filename}`;
 
         if (oldIcon) {
           await deleteImage(oldIcon);
@@ -309,12 +309,12 @@ export const updateService = async (req, res) => {
     if (req.files) {
       if (req.files.images && req.files.images.length > 0) {
         const imagePaths = req.files.images.map(
-          (file) => `/images/services/${file.filename}`,
+          (file) => `/uploads/services/${file.filename}`,
         );
         await deleteMultipleImages(imagePaths);
       }
       if (req.files.icon && req.files.icon[0]) {
-        await deleteImage(`/images/services/${req.files.icon[0].filename}`);
+        await deleteImage(`/uploads/services/${req.files.icon[0].filename}`);
       }
     }
 

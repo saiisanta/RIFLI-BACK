@@ -75,7 +75,7 @@ export const createBrand = async (req, res) => {
   try {
     const { name } = req.body;
     
-    const logo_url = req.file ? `/images/brands/${req.file.filename}` : null;
+    const logo_url = req.file ? `/uploads/brands/${req.file.filename}` : null;
     
     const newBrand = await Brand.create({
       name,
@@ -90,7 +90,7 @@ export const createBrand = async (req, res) => {
     
     // Si la DB falla, borramos la imagen que Multer ya había guardado
     if (req.file) {
-      await deleteImage(`/images/brands/${req.file.filename}`);
+      await deleteImage(`/uploads/brands/${req.file.filename}`);
     }
 
     if (err.name === 'SequelizeUniqueConstraintError') {
@@ -121,7 +121,7 @@ export const updateBrand = async (req, res) => {
     let logo_url = brand.logo_url;
     if (req.file) {
       const oldLogo = brand.logo_url;
-      logo_url = `/images/brands/${req.file.filename}`;
+      logo_url = `/uploads/brands/${req.file.filename}`;
       
       // Si la actualización es exitosa, el logo viejo se borra DESPUÉS del update
       if (oldLogo) await deleteImage(oldLogo);
@@ -140,7 +140,7 @@ export const updateBrand = async (req, res) => {
     
     // Si falla el update, borramos la imagen NUEVA que intentamos subir
     if (req.file) {
-      await deleteImage(`/images/brands/${req.file.filename}`);
+      await deleteImage(`/uploads/brands/${req.file.filename}`);
     }
 
     if (err.name === 'SequelizeUniqueConstraintError') {

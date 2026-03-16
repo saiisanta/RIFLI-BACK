@@ -116,7 +116,7 @@ export const createCategory = async (req, res) => {
       }
     }
     
-    const icon = req.file ? `/images/categories/${req.file.filename}` : null;
+    const icon = req.file ? `/uploads/categories/${req.file.filename}` : null;
     
     const newCategory = await Category.create({
       name,
@@ -130,7 +130,7 @@ export const createCategory = async (req, res) => {
     res.status(201).json(newCategory);
   } catch (err) {
     await transaction.rollback();
-    if (req.file) await deleteImage(`/images/categories/${req.file.filename}`);
+    if (req.file) await deleteImage(`/uploads/categories/${req.file.filename}`);
     console.error(err);
     res.status(500).json({ error: 'Error al crear la categoría' });
   }
@@ -174,7 +174,7 @@ export const updateCategory = async (req, res) => {
     let icon = category.icon;
     if (req.file) {
       const oldIcon = category.icon;
-      icon = `/images/categories/${req.file.filename}`;
+      icon = `/uploads/categories/${req.file.filename}`;
       if (oldIcon) await deleteImage(oldIcon);
     }
 
@@ -198,7 +198,7 @@ export const updateCategory = async (req, res) => {
     res.json(result);
   } catch (err) {
     await transaction.rollback();
-    if (req.file) await deleteImage(`/images/categories/${req.file.filename}`);
+    if (req.file) await deleteImage(`/uploads/categories/${req.file.filename}`);
     console.error(err);
     res.status(500).json({ error: 'Error al actualizar la categoría' });
   }

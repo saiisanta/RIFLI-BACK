@@ -108,7 +108,7 @@ export const createProduct = async (req, res) => {
       return res.status(400).json({ error: "Marca no encontrada" });
     }
 
-    const images = req.files ? req.files.map((f) => `/images/products/${f.filename}`) : [];
+    const images = req.files ? req.files.map((f) => `/uploads/products/${f.filename}`) : [];
     const mainImage = images.length > 0 ? images[0] : null;
 
     let specifications = null;
@@ -145,7 +145,7 @@ export const createProduct = async (req, res) => {
     await transaction.rollback();
     // Limpieza de emergencia: borrar fotos si la DB falló
     if (req.files && req.files.length > 0) {
-      const pathsToDelete = req.files.map(f => `/images/products/${f.filename}`);
+      const pathsToDelete = req.files.map(f => `/uploads/products/${f.filename}`);
       await deleteMultipleImages(pathsToDelete);
     }
     console.error(err);
@@ -175,9 +175,9 @@ export const updateProduct = async (req, res) => {
     let mainImage = product.main_image;
     const imagesToDeletePhysical = [];
 
-    // 1. Agregar nuevas imágenes (Unificado a /images/products/)
+    // 1. Agregar nuevas imágenes (Unificado a /uploads/products/)
     if (req.files && req.files.length > 0) {
-      const newImages = req.files.map((f) => `/images/products/${f.filename}`);
+      const newImages = req.files.map((f) => `/uploads/products/${f.filename}`);
       images = [...images, ...newImages];
       if (!mainImage) mainImage = newImages[0];
     }
@@ -218,7 +218,7 @@ export const updateProduct = async (req, res) => {
   } catch (err) {
     await transaction.rollback();
     if (req.files) {
-      const paths = req.files.map(f => `/images/products/${f.filename}`);
+      const paths = req.files.map(f => `/uploads/products/${f.filename}`);
       await deleteMultipleImages(paths);
     }
     res.status(500).json({ error: "Error al actualizar producto" });
