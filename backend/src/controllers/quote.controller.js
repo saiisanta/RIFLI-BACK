@@ -9,6 +9,14 @@ import sequelize from '../config/db.js';
 import fs from 'fs/promises';
 import fsSync from 'fs';
 import path from 'path';
+import {
+  notifyQuoteStatusChange,
+  notifyQuotePaymentChange,
+  notifyAdminQuoteAccepted,
+  notifyAdminQuoteRejected,
+  notifyAdminProofUploaded,
+  notifyAdminNewQuote
+} from '../services/notifications.service.js';
 
 // Función auxiliar para eliminar archivos
 const deleteFile = async (filePath) => {
@@ -87,6 +95,9 @@ export const createQuote = async (req, res) => {
       ]
     });
 
+
+    notifyAdminNewQuote(quoteWithRelations).catch(console.error);
+    
     res.status(201).json(quoteWithRelations);
   } catch (err) {
     console.error(err);
@@ -161,7 +172,6 @@ export const getQuoteById = async (req, res) => {
 };
 
 // ========== 4. AGREGAR / EDITAR PRESUPUESTO (ADMIN) ==========
-// FIX: permite editar cuando status es PENDING o QUOTED
 export const addBudget = async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -220,6 +230,8 @@ export const addBudget = async (req, res) => {
     const depositAmount = quotedAmount * (depositPct / 100);
     const finalAmount = quotedAmount - depositAmount;
 
+    const previousStatus = quote.status;
+    
     await quote.update({
       materials_budget: parsedMaterials,
       labor_budget: parsedLabor,
@@ -235,8 +247,7 @@ export const addBudget = async (req, res) => {
       valid_until: valid_until || null,
       estimated_completion_days: estimated_completion_days || null,
       internal_notes: internal_notes !== undefined ? internal_notes : quote.internal_notes,
-      // FIX: solo cambiar a QUOTED si venía de PENDING
-      status: quote.status === 'PENDING' ? 'QUOTED' : quote.status,
+      status: previousStatus === 'PENDING' ? 'QUOTED' : previousStatus,
       quoted_at: quote.quoted_at || new Date()
     }, { transaction });
 
@@ -249,6 +260,10 @@ export const addBudget = async (req, res) => {
         { model: Address, as: 'address' }
       ]
     });
+
+  if (previousStatus === 'PENDING') {
+    notifyQuoteStatusChange(updatedQuote).catch(console.error);
+  }
 
     res.json(updatedQuote);
   } catch (err) {
@@ -326,12 +341,16 @@ export const uploadPaymentProof = async (req, res) => {
         deposit_proof_url: proofUrl,
         deposit_payment_status: 'PROOF_UPLOADED'
       });
+      notifyQuotePaymentChange(quote, 'deposit', 'PROOF_UPLOADED').catch(console.error);
+      notifyAdminProofUploaded(quote, 'deposit').catch(console.error);
     } else {
       if (quote.final_proof_url) await deleteFile(quote.final_proof_url);
       await quote.update({
         final_proof_url: proofUrl,
         final_payment_status: 'PROOF_UPLOADED'
       });
+      notifyQuotePaymentChange(quote, 'final', 'PROOF_UPLOADED').catch(console.error);
+      notifyAdminProofUploaded(quote, 'final').catch(console.error);
     }
 
     res.json({ message: 'Comprobante subido correctamente', proof_url: proofUrl });
@@ -356,32 +375,16 @@ export const reviewPaymentProof = async (req, res) => {
     if (!quote) {
       return res.status(404).json({ error: 'Cotización no encontrada' });
     }
-
-    if (payment_type === 'deposit') {
-      if (action === 'approve') {
-        await quote.update({
-          deposit_payment_status: 'PAID',
-          deposit_paid_at: new Date()
-        });
-      } else {
-        await quote.update({
-          deposit_payment_status: 'REJECTED',
-          internal_notes: `${quote.internal_notes || ''}\n[Seña rechazada]: ${rejection_reason}`.trim()
-        });
-      }
-    } else {
-      if (action === 'approve') {
-        await quote.update({
-          final_payment_status: 'PAID',
-          final_payment_paid_at: new Date()
-        });
-      } else {
-        await quote.update({
-          final_payment_status: 'REJECTED',
-          internal_notes: `${quote.internal_notes || ''}\n[Pago final rechazado]: ${rejection_reason}`.trim()
-        });
-      }
-    }
+    
+  if (payment_type === 'deposit') {
+    const newStatus = action === 'approve' ? 'PAID' : 'REJECTED';
+    await quote.update({ deposit_payment_status: newStatus, ...(action === 'approve' && { deposit_paid_at: new Date() }) });
+    notifyQuotePaymentChange(quote, 'deposit', newStatus).catch(console.error);
+  } else {
+    const newStatus = action === 'approve' ? 'PAID' : 'REJECTED';
+    await quote.update({ final_payment_status: newStatus, ...(action === 'approve' && { final_payment_paid_at: new Date() }) });
+    notifyQuotePaymentChange(quote, 'final', newStatus).catch(console.error);
+  }
 
     res.json(quote);
   } catch (err) {
@@ -413,6 +416,17 @@ export const updateQuoteStatus = async (req, res) => {
     if (status === 'COMPLETED')   updates.completed_at = new Date();
 
     await quote.update(updates);
+
+    // Notificación automática — el mapa ya sabe qué decir según el status
+    notifyQuoteStatusChange(quote).catch(console.error);
+
+    // Notificar al admin si el cliente tomó una decisión
+    if (status === 'ACCEPTED') {
+      notifyAdminQuoteAccepted(quote).catch(console.error);
+    }
+    if (status === 'REJECTED') {
+      notifyAdminQuoteRejected(quote).catch(console.error);
+    }
 
     res.json(quote);
   } catch (err) {

@@ -33,7 +33,7 @@ const sequelize = new Sequelize(
       idle: 10000
     },
     define: {
-      freezeTableName: true, // No deja que Sequelize cambie tus nombres a plural
+      freezeTableName: true, // No deja que Sequelize cambie nombres a plural
       underscored: true,     // Recomendado para MySQL: usa nombres_con_guion_bajo
       timestamps: true       // Crea createdAt y updatedAt
     }

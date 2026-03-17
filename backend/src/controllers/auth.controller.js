@@ -98,6 +98,8 @@ export const verifyEmail = async (req, res) => {
     user.verification_token_expires = null;
     await user.save();
 
+    notifyEmailVerified(user.id).catch(console.error);
+    
     res.json({ 
       message: 'Email verificado correctamente. Ya podés iniciar sesión.' 
     });

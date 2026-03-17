@@ -1,8 +1,8 @@
-// models/PaymentProof.js
+// models/PaymentOrderProof.js
 import { DataTypes } from 'sequelize';
 import sequelize from '../config/db.js';
 
-const PaymentProof = sequelize.define('PaymentProof', {
+const PaymentOrderProof = sequelize.define('PaymentOrderProof', {
   // Referencia (orden o presupuesto)
   related_type: {
     type: DataTypes.ENUM('ORDER', 'QUOTE'),
@@ -103,7 +103,7 @@ const PaymentProof = sequelize.define('PaymentProof', {
     allowNull: true
   }
 }, {
-  tableName: 'payment_proofs',
+  tableName: 'payment_order_proofs',
   timestamps: true,
   indexes: [
     { fields: ['related_type', 'related_id'] },
@@ -113,4 +113,4 @@ const PaymentProof = sequelize.define('PaymentProof', {
   ]
 });
 
-export default PaymentProof;
+export default PaymentOrderProof;

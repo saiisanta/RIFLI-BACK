@@ -1,4 +1,4 @@
-// models/Address.js
+// models/Notification.js
 import { DataTypes } from 'sequelize';
 import sequelize from '../config/db.js';
 
@@ -12,16 +12,11 @@ const Notification = sequelize.define('Notification', {
   // Tipo
   type: {
     type: DataTypes.ENUM(
-      'ORDER_CREATED',
-      'ORDER_PAID',
-      'ORDER_SHIPPED',
-      'ORDER_DELIVERED',
-      'QUOTE_CREATED',
-      'QUOTE_REPLIED',
-      'QUOTE_ACCEPTED',
-      'PAYMENT_APPROVED',
-      'PAYMENT_REJECTED',
-      'MESSAGE',
+      'QUOTE',
+      'ORDER',
+      'PAYMENT',
+      'PROMOTION',
+      'ADMIN',
       'SYSTEM'
     ),
     allowNull: false
@@ -37,7 +32,7 @@ const Notification = sequelize.define('Notification', {
   },
 
   // Metadata adicional
-  //   1. Para una orden (ORDER_SHIPPED):
+  //   1. Para una orden (ORDER):
   // En lugar de solo decir "Tu pedido fue enviado" guarda el ID para que al hacer click el usuario vaya directo a esa orden
 
   // JSON
@@ -46,7 +41,7 @@ const Notification = sequelize.define('Notification', {
   //   "trackingNumber": "AR123456789",
   //   "carrier": "Correo Argentino"
   // }
-  // 2. Para un mensaje o consulta (QUOTE_REPLIED):
+  // 2. Para un mensaje o consulta (QUOTE o MESSAGE):
   // JSON
   // {
   //   "quoteId": 12,
@@ -73,13 +68,13 @@ const Notification = sequelize.define('Notification', {
   },
 
   // Envío por email
-  // sentViaEmail: {
-  //   type: DataTypes.BOOLEAN,
-  //   defaultValue: false
-  // },
-  // emailSentAt: {
-  //   type: DataTypes.DATE
-  // }
+  sentViaEmail: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false
+  },
+  emailSentAt: {
+    type: DataTypes.DATE
+  }
 }, {
   tableName: 'notifications',
   timestamps: true,

@@ -69,7 +69,7 @@ const Order = sequelize.define('Order', {
     defaultValue: 'PENDING_PAYMENT'
   },
 
-  // Pago (Mercado Pago)
+  // Pago 
   payment_method: {
     type: DataTypes.ENUM('BANK_TRANSFER', 'CASH'),
     allowNull: false
