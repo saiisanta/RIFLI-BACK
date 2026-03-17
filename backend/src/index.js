@@ -25,26 +25,9 @@ import userRoutes from './routes/user.routes.js';
 import brandRoutes from './routes/brand.routes.js';
 import categoryRoutes from './routes/category.routes.js';
 import addressRoutes from './routes/address.routes.js';
+import notificationRoutes from './routes/notification.routes.js';
 
 const app = express();
-
-// Ruta principal
-app.get('/', (req, res) => {
-  res.json({
-    message: 'Welcome to the TPI API',
-    endpoints: {
-      addresses: '/api/addresses',
-      auth: '/api/auth',
-      products: '/api/products',
-      services: '/api/services',
-      quotes: '/api/quotes',
-      carts: '/api/carts',
-      users: '/api/users',
-      brands: '/api/brands',
-      categories: '/api/categories'
-    }
-  });
-});
 
 // Middlewares
 app.use(cors({
@@ -72,7 +55,7 @@ app.use('/api/carts', cartRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/brands', brandRoutes);
 app.use('/api/categories', categoryRoutes);
-app.use('/images',   express.static(path.join(__dirname, '../public/images')));
+app.use('/api/notifications', notificationRoutes);
 app.use('/uploads',  express.static(path.join(__dirname, '../public/uploads')));
 
 // Error handling middleware

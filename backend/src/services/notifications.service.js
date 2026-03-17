@@ -145,7 +145,7 @@ export const notifyQuoteStatusChange = async (quote) => {
     type: 'QUOTE',
     title: config.title,
     message: config.message(quote),
-    metadata: {  quoteNumber: quote.quote_number, link: `/presupuestos` },
+    metadata: { quoteNumber: quote.quote_number, status: quote.status, link: `/presupuestos` },
     sendEmail: config.sendEmail,
     emailPayload: config.sendEmail
       ? async () => {
@@ -166,7 +166,7 @@ export const notifyQuotePaymentChange = async (quote, paymentType, newStatus) =>
     type: 'PAYMENT',
     title: config.title,
     message: config.message(quote),
-    metadata: {  quoteNumber: quote.quote_number, paymentType, link: `/presupuestos` },
+    metadata: { quoteNumber: quote.quote_number, paymentType, status: newStatus, link: `/presupuestos` },
     sendEmail: config.sendEmail,
     emailPayload: config.sendEmail
       ? async () => {
@@ -187,7 +187,7 @@ export const notifyOrderStatusChange = async (order) => {
     type: 'ORDER',
     title: config.title,
     message: config.message(order),
-    metadata: { orderId: order.id, orderNumber: order.order_number, link: `/pedidos/${order.id}` },
+    metadata: { orderId: order.id, orderNumber: order.order_number, status: order.status, link: `/pedidos/${order.id}` },
     sendEmail: config.sendEmail,
     emailPayload: config.sendEmail
       ? async () => {
