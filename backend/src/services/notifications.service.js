@@ -227,7 +227,7 @@ export const notifyAdminQuoteAccepted = async (quote) => {
       type: 'ADMIN',
       title: 'Cliente aceptó un presupuesto',
       message: `El cliente aceptó el presupuesto #${quote.quote_number}. Aguarda el pago de la seña.`,
-      metadata: {  quoteNumber: quote.quote_number, link: `/admin/presupuestos` },
+      metadata: {  quoteNumber: quote.quote_number, link: `/admin/quotes` },
     })
   ));
 };
@@ -240,7 +240,7 @@ export const notifyAdminQuoteRejected = async (quote) => {
       type: 'ADMIN',
       title: 'Cliente rechazó un presupuesto',
       message: `El cliente rechazó el presupuesto #${quote.quote_number}.${quote.rejection_reason ? ` Motivo: ${quote.rejection_reason}` : ''}`,
-      metadata: {  quoteNumber: quote.quote_number, link: `/admin/presupuestos` },
+      metadata: {  quoteNumber: quote.quote_number, link: `/admin/quotes` },
     })
   ));
 };
@@ -254,7 +254,7 @@ export const notifyAdminProofUploaded = async (quote, paymentType) => {
       type: 'ADMIN',
       title: 'Nuevo comprobante de pago',
       message: `El cliente subió el comprobante de ${label} del presupuesto #${quote.quote_number}. Revisalo para aprobar o rechazar.`,
-      metadata: {  quoteNumber: quote.quote_number, paymentType, link: `/admin/presupuestos` },
+      metadata: {  quoteNumber: quote.quote_number, paymentType, link: `/admin/quotes` },
     })
   ));
 };
@@ -267,7 +267,7 @@ export const notifyAdminNewQuote = async (quote) => {
       type: 'ADMIN',
       title: 'Nueva solicitud de presupuesto',
       message: `Un cliente solicitó un presupuesto para "${quote.service_type}" (#${quote.quote_number}). Revisalo y enviá la cotización.`,
-      metadata: {  quoteNumber: quote.quote_number, link: `/admin/presupuestos` },
+      metadata: {  quoteNumber: quote.quote_number, link: `/admin/quotes` },
     })
   ));
 };

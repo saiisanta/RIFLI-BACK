@@ -25,7 +25,7 @@ import userRoutes from './routes/user.routes.js';
 import brandRoutes from './routes/brand.routes.js';
 import categoryRoutes from './routes/category.routes.js';
 import addressRoutes from './routes/address.routes.js';
-import notificationRoutes from './routes/notification.routes.js';
+import notificationRoutes from './routes/notifications.routes.js';
 
 const app = express();
 
