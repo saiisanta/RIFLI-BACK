@@ -7,32 +7,32 @@ import { sendQuoteStatusEmail, sendPaymentStatusEmail, sendOrderStatusEmail } fr
 
 const QUOTE_STATUS_MAP = {
   QUOTED: {
-    title: '📋 Presupuesto listo para revisar',
+    title: 'Presupuesto listo para revisar',
     message: (q) => `Tu solicitud #${q.quote_number} fue cotizada por $${q.quoted_amount?.toLocaleString('es-AR')}. Entrá a revisarla y confirmá si aceptás.`,
     sendEmail: true,
   },
   ACCEPTED: {
-    title: '✅ Aceptaste el presupuesto',
+    title: 'Aceptaste el presupuesto',
     message: (q) => `Confirmaste el presupuesto #${q.quote_number}. Realizá la seña para comenzar el trabajo.`,
     sendEmail: false, 
   },
   REJECTED: {
-    title: '❌ Rechazaste el presupuesto',
+    title: 'Rechazaste el presupuesto',
     message: (q) => `Rechazaste el presupuesto #${q.quote_number}. Si fue un error, contactanos.`,
     sendEmail: false,
   },
   IN_PROGRESS: {
-    title: '🔧 Tu trabajo comenzó',
+    title: 'Tu trabajo comenzó',
     message: (q) => `El equipo ya inició el trabajo de tu presupuesto #${q.quote_number}.`,
     sendEmail: true,
   },
   COMPLETED: {
-    title: '🎉 Trabajo completado',
+    title: 'Trabajo completado',
     message: (q) => `El trabajo de tu presupuesto #${q.quote_number} finalizó correctamente. ¡Gracias por confiar en nosotros!`,
     sendEmail: true,
   },
   CANCELLED: {
-    title: '🚫 Presupuesto cancelado',
+    title: 'Presupuesto cancelado',
     message: (q) => `Tu presupuesto #${q.quote_number} fue cancelado.${q.rejection_reason ? ` Motivo: ${q.rejection_reason}` : ''}`,
     sendEmail: true,
   },
@@ -42,17 +42,17 @@ const QUOTE_PAYMENT_MAP = {
   // Seña
   deposit: {
     PROOF_UPLOADED: {
-      title: '📋 Comprobante de seña recibido',
+      title: 'Comprobante de seña recibido',
       message: (q) => `Recibimos tu comprobante de seña del presupuesto #${q.quote_number}. Lo estamos verificando.`,
       sendEmail: false,
     },
     PAID: {
-      title: '✅ Seña aprobada',
+      title: 'Seña aprobada',
       message: (q) => `Tu seña del presupuesto #${q.quote_number} fue verificada y aprobada. El trabajo será agendado en breve.`,
       sendEmail: true,
     },
     REJECTED: {
-      title: '⚠️ Comprobante de seña rechazado',
+      title: 'Comprobante de seña rechazado',
       message: (q) => `El comprobante de seña del presupuesto #${q.quote_number} fue rechazado. Por favor subí uno nuevo.`,
       sendEmail: true,
     },
@@ -60,17 +60,17 @@ const QUOTE_PAYMENT_MAP = {
   // Pago final
   final: {
     PROOF_UPLOADED: {
-      title: '📋 Comprobante de pago final recibido',
+      title: 'Comprobante de pago final recibido',
       message: (q) => `Recibimos tu comprobante de pago final del presupuesto #${q.quote_number}. Lo estamos verificando.`,
       sendEmail: false,
     },
     PAID: {
-      title: '✅ Pago final aprobado',
+      title: 'Pago final aprobado',
       message: (q) => `Tu pago final del presupuesto #${q.quote_number} fue verificado. ¡Todo listo!`,
       sendEmail: true,
     },
     REJECTED: {
-      title: '⚠️ Comprobante de pago final rechazado',
+      title: 'Comprobante de pago final rechazado',
       message: (q) => `El comprobante de pago final del presupuesto #${q.quote_number} fue rechazado. Por favor subí uno nuevo.`,
       sendEmail: true,
     },
@@ -79,32 +79,32 @@ const QUOTE_PAYMENT_MAP = {
 
 const ORDER_STATUS_MAP = {
   PAID: {
-    title: '💳 Pago confirmado',
+    title: 'Pago confirmado',
     message: (o) => `Tu pago del pedido #${o.order_number} fue confirmado. Estamos preparando tu envío.`,
     sendEmail: true,
   },
   PROCESSING: {
-    title: '📦 Preparando tu pedido',
+    title: 'Preparando tu pedido',
     message: (o) => `Tu pedido #${o.order_number} está siendo preparado.`,
     sendEmail: false,
   },
   SHIPPED: {
-    title: '🚚 Tu pedido fue enviado',
+    title: 'Tu pedido fue enviado',
     message: (o) => `Tu pedido #${o.order_number} está en camino${o.tracking_number ? `. Seguimiento: ${o.tracking_number}` : ''}.`,
     sendEmail: true,
   },
   DELIVERED: {
-    title: '🏠 Pedido entregado',
+    title: 'Pedido entregado',
     message: (o) => `Tu pedido #${o.order_number} fue entregado. ¡Gracias por tu compra!`,
     sendEmail: true,
   },
   CANCELLED: {
-    title: '🚫 Pedido cancelado',
+    title: 'Pedido cancelado',
     message: (o) => `Tu pedido #${o.order_number} fue cancelado.`,
     sendEmail: true,
   },
   REFUNDED: {
-    title: '↩️ Reembolso procesado',
+    title: 'Reembolso procesado',
     message: (o) => `Se procesó un reembolso por tu pedido #${o.order_number}.`,
     sendEmail: true,
   },
@@ -225,7 +225,7 @@ export const notifyAdminQuoteAccepted = async (quote) => {
     createNotification({
       userId: adminId,
       type: 'ADMIN',
-      title: '✅ Cliente aceptó un presupuesto',
+      title: 'Cliente aceptó un presupuesto',
       message: `El cliente aceptó el presupuesto #${quote.quote_number}. Aguarda el pago de la seña.`,
       metadata: {  quoteNumber: quote.quote_number, link: `/admin/presupuestos` },
     })
@@ -238,7 +238,7 @@ export const notifyAdminQuoteRejected = async (quote) => {
     createNotification({
       userId: adminId,
       type: 'ADMIN',
-      title: '❌ Cliente rechazó un presupuesto',
+      title: 'Cliente rechazó un presupuesto',
       message: `El cliente rechazó el presupuesto #${quote.quote_number}.${quote.rejection_reason ? ` Motivo: ${quote.rejection_reason}` : ''}`,
       metadata: {  quoteNumber: quote.quote_number, link: `/admin/presupuestos` },
     })
@@ -252,7 +252,7 @@ export const notifyAdminProofUploaded = async (quote, paymentType) => {
     createNotification({
       userId: adminId,
       type: 'ADMIN',
-      title: '📎 Nuevo comprobante de pago',
+      title: 'Nuevo comprobante de pago',
       message: `El cliente subió el comprobante de ${label} del presupuesto #${quote.quote_number}. Revisalo para aprobar o rechazar.`,
       metadata: {  quoteNumber: quote.quote_number, paymentType, link: `/admin/presupuestos` },
     })
@@ -265,7 +265,7 @@ export const notifyAdminNewQuote = async (quote) => {
     createNotification({
       userId: adminId,
       type: 'ADMIN',
-      title: '📋 Nueva solicitud de presupuesto',
+      title: 'Nueva solicitud de presupuesto',
       message: `Un cliente solicitó un presupuesto para "${quote.service_type}" (#${quote.quote_number}). Revisalo y enviá la cotización.`,
       metadata: {  quoteNumber: quote.quote_number, link: `/admin/presupuestos` },
     })
