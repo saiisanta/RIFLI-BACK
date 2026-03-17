@@ -6,7 +6,7 @@ import {
   markAsRead,
   markAllAsRead,
   deleteNotification
-} from '../controllers/notification.controller.js';
+} from '../controllers/notifications.controller.js';
 import { authenticateToken } from '../middlewares/auth.middleware.js';
 import { validateId } from '../validations/id.validation.js';
 
