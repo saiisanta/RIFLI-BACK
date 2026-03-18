@@ -7,6 +7,7 @@ import User from '../models/User.js';
 import { sendVerificationEmail } from '../services/email.service.js';
 import { Op } from 'sequelize';
 import sequelize from '../config/db.js';
+import { notifyEmailVerified } from '../services/notifications.service.js';
 
 // Registro con verificación de email
 export const register = async (req, res) => {

@@ -268,7 +268,7 @@ export const sendQuoteStatusEmail = async ({ to, userName, quote, title, message
                 </div>
                 <p>Podés ver todos los detalles de tu presupuesto <strong>#${quote.quote_number}</strong> desde tu cuenta:</p>
                 <center>
-                  <a href="${process.env.FRONTEND_URL}presupuestos/${quote.id}" class="button">Ver presupuesto</a>
+                  <a href="${process.env.FRONTEND_URL}/presupuestos" class="button">Ver presupuesto</a>
                 </center>
                 <p>Si tenés dudas, contactanos por WhatsApp.</p>
               </div>
@@ -279,7 +279,16 @@ export const sendQuoteStatusEmail = async ({ to, userName, quote, title, message
             </div>
           </body>
         </html>
-      `
+      `,
+        headers: {
+          'X-Entity-Ref-ID': new Date().getTime().toString(),
+        },
+        tags: [
+          {
+            name: 'click_tracking',
+            value: 'false' // desactiva el click tracking 
+          }
+        ]
     });
 
     if (error) throw new Error('Error al enviar email de estado de quote');
@@ -339,7 +348,7 @@ export const sendPaymentStatusEmail = async ({ to, userName, quote, paymentType,
                   }
                 </div>
                 <center>
-                  <a href="${process.env.FRONTEND_URL}presupuestos/${quote.id}" class="button">Ver presupuesto</a>
+                  <a href="${process.env.FRONTEND_URL}/presupuestos" class="button">Ver presupuesto</a>
                 </center>
                 <p>Si tenés dudas, contactanos por WhatsApp.</p>
               </div>
@@ -350,7 +359,16 @@ export const sendPaymentStatusEmail = async ({ to, userName, quote, paymentType,
             </div>
           </body>
         </html>
-      `
+      `,
+        headers: {
+          'X-Entity-Ref-ID': new Date().getTime().toString(),
+        },
+        tags: [
+          {
+            name: 'click_tracking',
+            value: 'false' // desactiva el click tracking 
+          }
+        ]
     });
 
     if (error) throw new Error('Error al enviar email de pago');
@@ -398,7 +416,7 @@ export const sendOrderStatusEmail = async ({ to, userName, order, title }) => {
                   ${order.tracking_number ? `<tr><td style="color:#666;">Seguimiento</td><td><strong>${order.tracking_number}</strong></td></tr>` : ''}
                 </table>
                 <center>
-                  <a href="${process.env.FRONTEND_URL}pedidos/${order.id}" class="button">Ver mi pedido</a>
+                  <a href="${process.env.FRONTEND_URL}/pedidos/${order.id}" class="button">Ver mi pedido</a>
                 </center>
               </div>
               <div class="footer">
@@ -408,7 +426,16 @@ export const sendOrderStatusEmail = async ({ to, userName, order, title }) => {
             </div>
           </body>
         </html>
-      `
+      `,
+        headers: {
+          'X-Entity-Ref-ID': new Date().getTime().toString(),
+        },
+        tags: [
+          {
+            name: 'click_tracking',
+            value: 'false' // desactiva el click tracking 
+          }
+        ]
     });
 
     if (error) throw new Error('Error al enviar email de orden');
