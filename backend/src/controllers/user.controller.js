@@ -1,7 +1,7 @@
 // controllers/user.controller.js
 import User from '../models/User.js';
 import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
+import Address from '../models/Address.js';
 import crypto from 'crypto'; // Para tokens de reseteo
 import { validationResult } from 'express-validator';
 import { sendPasswordResetEmail } from '../services/email.service.js';
@@ -33,11 +33,60 @@ const deleteImage = async (imagePath) => {
 // Obtener todos los usuarios (solo admins)
 export const getAllUsers = async (req, res) => {
   try {
-    const users = await User.findAll({
+    const { search, role, is_verified, address, page = 1, limit = 20 } = req.query;
+
+    const where = {};
+    const addressWhere = {};
+
+    if (search) {
+      where[Op.or] = [
+        { first_name: { [Op.like]: `%${search}%` } },
+        { last_name:  { [Op.like]: `%${search}%` } },
+        { email:      { [Op.like]: `%${search}%` } }
+      ];
+    }
+
+    if (role)        where.role        = role;
+    if (is_verified !== undefined) where.is_verified = is_verified === 'true';
+
+    // Filtro de dirección — busca en calle, ciudad o provincia
+    if (address) {
+      addressWhere[Op.or] = [
+        { street:   { [Op.like]: `%${address}%` } },
+        { city:     { [Op.like]: `%${address}%` } },
+        { province: { [Op.like]: `%${address}%` } }
+      ];
+    }
+
+    const offset = (Number(page) - 1) * Number(limit);
+
+    const { count, rows: users } = await User.findAndCountAll({
+      where,
       attributes: { exclude: ['password', 'verification_token', 'verification_token_expires', 'reset_password_token', 'reset_password_expires'] },
-      order: [['created_at', 'DESC']]
+      include: [
+        {
+          model: Address,
+          as: 'addresses',
+          attributes: ['id', 'street', 'city', 'province', 'is_default'],
+          where: Object.keys(addressWhere).length ? addressWhere : undefined,
+          required: Object.keys(addressWhere).length > 0, // true solo si hay filtro activo
+        }
+      ],
+      order: [['createdAt', 'DESC']],
+      limit:  Number(limit),
+      offset,
+      distinct: true, // evita count inflado por el JOIN
     });
-    res.json(users);
+
+    res.json({
+      users,
+      pagination: {
+        total:       count,
+        total_pages: Math.ceil(count / Number(limit)),
+        page:        Number(page),
+        limit:       Number(limit),
+      }
+    });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Error al obtener los usuarios' });

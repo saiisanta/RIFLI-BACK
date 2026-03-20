@@ -4,6 +4,6 @@ import validateFields from '../middlewares/validateFields.middleware.js';
 
 export const validateId = [
   param('id')
-    .isInt({ min: 1 }).withMessage('ID de usuario inválido'),
+    .isInt({ min: 1 }).withMessage('ID inválido'),
   validateFields
 ];

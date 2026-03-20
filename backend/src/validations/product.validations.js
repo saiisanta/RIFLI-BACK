@@ -1,5 +1,5 @@
 // validations/product.validations.js
-import { body } from 'express-validator';
+import { body, query } from 'express-validator';
 import validateFields from '../middlewares/validateFields.middleware.js';
 import Product from '../models/Product.js';
 import { Op } from 'sequelize';
@@ -203,3 +203,18 @@ export const validateProductUpdate = [
   validateFields
 ];
 
+export const validateGetProducts = [
+  query('category_id')
+    .optional()
+    .isInt({ min: 1 }).withMessage('category_id inválido'),
+  query('brand_id')
+    .optional()
+    .isInt({ min: 1 }).withMessage('brand_id inválido'),
+  query('min_price')
+    .optional()
+    .isFloat({ min: 0 }).withMessage('min_price debe ser un número positivo'),
+  query('max_price')
+    .optional()
+    .isFloat({ min: 0 }).withMessage('max_price debe ser un número positivo'),
+  validateFields
+];

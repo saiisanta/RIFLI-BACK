@@ -1,5 +1,5 @@
 // validations/user.validations.js
-import { body } from 'express-validator';
+import { body, query } from 'express-validator';
 import validateFields from '../middlewares/validateFields.middleware.js';
 
 export const validateChangePassword = [
@@ -79,5 +79,29 @@ export const validateChangeRole = [
 export const validateDeleteAccount = [
   body('password')
     .notEmpty().withMessage('Contraseña requerida'),
+  validateFields
+];
+
+export const validateGetUsers = [
+  query('role')
+    .optional()
+    .isIn(['CLIENT', 'TECHNICIAN', 'ADMIN']).withMessage('Rol inválido'),
+  query('is_verified')
+    .optional()
+    .isBoolean().withMessage('is_verified debe ser true o false'),
+  query('search')
+    .optional()
+    .trim()
+    .isLength({ max: 100 }).withMessage('Búsqueda demasiado larga'),
+  query('page')
+    .optional()
+    .isInt({ min: 1 }).withMessage('Página inválida'),
+  query('limit')
+    .optional()
+    .isInt({ min: 1, max: 100 }).withMessage('Límite debe ser entre 1 y 100'),
+  query('address')
+    .optional()
+    .trim()
+    .isLength({ max: 100 }).withMessage('Búsqueda de dirección demasiado larga'),
   validateFields
 ];

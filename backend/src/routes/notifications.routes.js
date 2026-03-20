@@ -9,11 +9,12 @@ import {
 } from '../controllers/notifications.controller.js';
 import { authenticateToken } from '../middlewares/auth.middleware.js';
 import { validateId } from '../validations/id.validation.js';
+import { validateGetNotifications } from '../validations/notifications.validations.js';
 
 const router = express.Router();
 
 // ========== Rutas del usuario autenticado ==========
-router.get('/',             authenticateToken, getNotifications);
+router.get('/',             authenticateToken, validateGetNotifications, getNotifications);
 router.get('/unread-count', authenticateToken, getUnreadCount);
 router.patch('/read-all',   authenticateToken, markAllAsRead);
 router.patch('/:id/read',   authenticateToken, validateId, markAsRead);

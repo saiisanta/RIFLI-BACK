@@ -1,5 +1,5 @@
 // validations/quote.validations.js
-import { body } from 'express-validator';
+import { body, query } from 'express-validator';
 import validateFields from '../middlewares/validateFields.middleware.js';
 
 // ========== Crear Cotización (Cliente) ==========
@@ -183,5 +183,25 @@ export const validateUpdateStatus = [
     .optional()
     .isInt().withMessage('assigned_technician_id debe ser un número entero'),
   
+  validateFields
+];
+
+export const validateGetQuotes = [
+  query('status')
+    .optional()
+    .isIn(['PENDING', 'QUOTED', 'ACCEPTED', 'REJECTED', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED'])
+    .withMessage('Estado inválido'),
+  query('service_id')
+    .optional()
+    .isInt({ min: 1 }).withMessage('service_id inválido'),
+  query('client_id')
+    .optional()
+    .isInt({ min: 1 }).withMessage('client_id inválido'),
+  query('from_date')
+    .optional()
+    .isISO8601().withMessage('from_date debe ser una fecha válida (ISO 8601)'),
+  query('to_date')
+    .optional()
+    .isISO8601().withMessage('to_date debe ser una fecha válida (ISO 8601)'),
   validateFields
 ];

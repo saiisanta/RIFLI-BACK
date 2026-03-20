@@ -22,7 +22,8 @@ import {
   validateAddBudget,
   validateUploadProof,
   validateReviewProof,
-  validateUpdateStatus
+  validateUpdateStatus,
+  validateGetQuotes
 } from '../validations/quote.validations.js';
 import { validateId } from '../validations/id.validation.js';
 
@@ -40,6 +41,7 @@ router.post('/',
 
 router.get('/',
   authenticateToken,
+  validateGetQuotes,
   getAllQuotes
 );
 
