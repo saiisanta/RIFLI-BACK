@@ -12,3 +12,10 @@ mysql_data/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+# service images
+RIFLI-BACK\backend\public\uploads\services\1773942833029-842313140.jpg
+
+RIFLI-BACK\backend\public\uploads\services\1773942869236-24918201.jpg
+
+RIFLI-BACK\backend\public\uploads\services\1773942889729-310035541.jpg

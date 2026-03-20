@@ -46,11 +46,12 @@ export const getAllUsers = async (req, res) => {
       ];
     }
 
-    if (role)        where.role        = role;
+    if (role)                      where.role        = role;
     if (is_verified !== undefined) where.is_verified = is_verified === 'true';
 
-    // Filtro de dirección — busca en calle, ciudad o provincia
-    if (address) {
+    const hasAddressFilter = !!address;
+
+    if (hasAddressFilter) {
       addressWhere[Op.or] = [
         { street:   { [Op.like]: `%${address}%` } },
         { city:     { [Op.like]: `%${address}%` } },
@@ -68,14 +69,14 @@ export const getAllUsers = async (req, res) => {
           model: Address,
           as: 'addresses',
           attributes: ['id', 'street', 'city', 'province', 'is_default'],
-          where: Object.keys(addressWhere).length ? addressWhere : undefined,
-          required: Object.keys(addressWhere).length > 0, // true solo si hay filtro activo
+          where:    hasAddressFilter ? addressWhere : undefined,
+          required: hasAddressFilter,
         }
       ],
       order: [['createdAt', 'DESC']],
       limit:  Number(limit),
       offset,
-      distinct: true, // evita count inflado por el JOIN
+      distinct: true,
     });
 
     res.json({
