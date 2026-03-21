@@ -56,8 +56,9 @@ User.hasMany(PaymentOrderProof, { foreignKey: 'user_id', as: 'paymentOrderProofs
 User.hasMany(PaymentOrderProof, { foreignKey: 'reviewed_by', as: 'reviewedProofs' });
 
 // ============ CART RELATIONS ============
-User.hasOne(Cart, { foreignKey: 'user_id', as: 'cart' });
 Cart.belongsTo(User, { foreignKey: 'user_id' });
+User.hasOne(Cart, { foreignKey: 'user_id', as: 'cart' });
+Cart.belongsToMany(Product, { through: 'cart_items', foreignKey: 'cart_id' });
 
 // ============ BANK ACCOUNT RELATIONS ============
 BankAccount.hasMany(PaymentOrderProof, { foreignKey: 'bank_account_id', as: 'receivedPayments' });

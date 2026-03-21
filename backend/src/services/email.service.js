@@ -446,3 +446,89 @@ export const sendOrderStatusEmail = async ({ to, userName, order, title }) => {
     throw error;
   }
 };
+
+// Mail nueva orden generada por usuario (para admin)
+export const sendAdminNewOrderEmail = async ({ to, userName, order }) => {
+  const items = order.items.map(item =>
+    `<tr>
+      <td style="padding: 8px; border-bottom: 1px solid #f0f0f0;">${item.name}</td>
+      <td style="padding: 8px; border-bottom: 1px solid #f0f0f0; text-align:center;">${item.quantity}</td>
+      <td style="padding: 8px; border-bottom: 1px solid #f0f0f0; text-align:right;">$${Number(item.unit_price).toLocaleString('es-AR')}</td>
+      <td style="padding: 8px; border-bottom: 1px solid #f0f0f0; text-align:right;">$${Number(item.subtotal).toLocaleString('es-AR')}</td>
+    </tr>`
+  ).join('');
+
+  const address = order.shipping_address_snapshot;
+
+  const { data, error } = await resend.emails.send({
+    ...emailDefaults,
+    to,
+    subject: `🛒 Nueva orden #${order.order_number} - RIFLI`,
+    html: `
+      <!DOCTYPE html>
+      <html>
+        <head><meta charset="utf-8"></head>
+        <body style="font-family: Arial, sans-serif; color: #333; margin: 0; padding: 0;">
+          <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+            <div style="background: #1a1a2e; color: white; padding: 25px; text-align: center; border-radius: 10px 10px 0 0;">
+              <h2 style="margin: 0;">🛒 Nueva Orden de Compra</h2>
+              <p style="margin: 8px 0 0; opacity: 0.8;">Orden #${order.order_number}</p>
+            </div>
+            <div style="background: #fff; padding: 30px; border: 1px solid #e0e0e0; border-top: none; border-radius: 0 0 10px 10px;">
+              <p>Hola <strong>${userName}</strong>, se recibió una nueva orden que requiere cotización de envío.</p>
+              
+              <h3 style="color: #1a1a2e; border-bottom: 2px solid #f0f0f0; padding-bottom: 8px;">Productos</h3>
+              <table width="100%" cellpadding="0" cellspacing="0">
+                <thead>
+                  <tr style="background: #f9f9f9;">
+                    <th style="padding: 8px; text-align:left;">Producto</th>
+                    <th style="padding: 8px; text-align:center;">Cant.</th>
+                    <th style="padding: 8px; text-align:right;">Precio unit.</th>
+                    <th style="padding: 8px; text-align:right;">Subtotal</th>
+                  </tr>
+                </thead>
+                <tbody>${items}</tbody>
+                <tfoot>
+                  <tr>
+                    <td colspan="3" style="padding: 12px 8px; text-align:right; font-weight:bold;">Subtotal productos:</td>
+                    <td style="padding: 12px 8px; text-align:right; font-weight:bold;">$${Number(order.subtotal).toLocaleString('es-AR')}</td>
+                  </tr>
+                  <tr style="background: #fff3cd;">
+                    <td colspan="3" style="padding: 8px; text-align:right; font-weight:bold;">🚚 Envío:</td>
+                    <td style="padding: 8px; text-align:right; font-weight:bold;">Pendiente</td>
+                  </tr>
+                </tfoot>
+              </table>
+
+              <h3 style="color: #1a1a2e; border-bottom: 2px solid #f0f0f0; padding-bottom: 8px; margin-top: 24px;">Dirección de entrega</h3>
+              <p style="background: #f9f9f9; padding: 12px; border-radius: 6px; margin: 0;">
+                ${address.street} ${address.number}<br/>
+                ${address.city}, ${address.province}<br/>
+                CP: ${address.postal_code}
+              </p>
+
+              <div style="text-align: center; margin: 30px 0;">
+                <a href="${process.env.FRONTEND_URL}/admin/pedidos/${order.id}" 
+                   style="background: #1a1a2e; color: white; padding: 13px 28px; text-decoration: none; border-radius: 6px; font-weight: bold;">
+                  Ver orden y cotizar envío
+                </a>
+              </div>
+            </div>
+          </div>
+        </body>
+      </html>
+    `,
+        headers: {
+          'X-Entity-Ref-ID': new Date().getTime().toString(),
+        },
+        tags: [
+          {
+            name: 'click_tracking',
+            value: 'false' // desactiva el click tracking 
+          }
+        ]
+  });
+
+  if (error) throw new Error('Error al enviar email de nueva orden');
+  return data;
+};

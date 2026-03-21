@@ -271,3 +271,32 @@ export const notifyAdminNewQuote = async (quote) => {
     })
   ));
 };
+
+export const notifyAdminNewOrder = async (order) => {
+  const adminIds = await getAdminIds();
+
+  // Notificación in-app para cada admin
+  await Promise.all(adminIds.map(adminId =>
+    createNotification({
+      userId:   adminId,
+      type:     'ADMIN',
+      title:    'Nueva orden de compra',
+      message:  `Se recibió la orden #${order.order_number} por $${Number(order.subtotal).toLocaleString('es-AR')}. Cotizá el envío a la brevedad.`,
+      metadata: { orderId: order.id, orderNumber: order.order_number, link: `/admin/pedidos/${order.id}` }
+    })
+  ));
+
+  // Email al admin
+  try {
+    const admins = await User.findAll({
+      where: { role: 'ADMIN' },
+      attributes: ['email', 'first_name']
+    });
+
+    await Promise.all(admins.map(admin =>
+      sendAdminNewOrderEmail({ to: admin.email, userName: admin.first_name, order })
+    ));
+  } catch (err) {
+    console.error('❌ Email de nueva orden fallido:', err.message);
+  }
+};

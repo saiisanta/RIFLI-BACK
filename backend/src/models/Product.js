@@ -8,11 +8,7 @@ const Product = sequelize.define('Product', {
     type: DataTypes.STRING(255),
     allowNull: false
   },
-  // slug: {
-  //   type: DataTypes.STRING(255),
-  //   unique: true,
-  //   allowNull: false
-  // },
+
   sku: { // Código único del producto
     type: DataTypes.STRING(50),
     unique: true,
