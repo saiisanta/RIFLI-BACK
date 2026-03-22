@@ -245,16 +245,27 @@ export const notifyAdminQuoteRejected = async (quote) => {
   ));
 };
 
-export const notifyAdminProofUploaded = async (quote, paymentType) => {
+export const notifyAdminProofUploaded = async (entity, paymentType, entityType = 'quote') => {
   const adminIds = await getAdminIds();
   const label = paymentType === 'deposit' ? 'seña' : 'pago final';
+
+  const isQuote = entityType === 'quote';
+  const number  = isQuote ? entity.quote_number : entity.order_number;
+  const link    = isQuote ? `/admin/quotes` : `/admin/pedidos/${entity.id}`;
+  const title   = isQuote
+    ? 'Nuevo comprobante de pago — Presupuesto'
+    : 'Nuevo comprobante de pago — Orden';
+  const message = isQuote
+    ? `El cliente subió el comprobante de ${label} del presupuesto #${number}.`
+    : `El cliente subió el comprobante de la orden #${number}.`;
+
   await Promise.all(adminIds.map(adminId =>
     createNotification({
-      userId: adminId,
-      type: 'ADMIN',
-      title: 'Nuevo comprobante de pago',
-      message: `El cliente subió el comprobante de ${label} del presupuesto #${quote.quote_number}. Revisalo para aprobar o rechazar.`,
-      metadata: {  quoteNumber: quote.quote_number, paymentType, link: `/admin/quotes` },
+      userId:   adminId,
+      type:     'ADMIN',
+      title,
+      message,
+      metadata: { number, paymentType, link }
     })
   ));
 };
@@ -299,4 +310,19 @@ export const notifyAdminNewOrder = async (order) => {
   } catch (err) {
     console.error('❌ Email de nueva orden fallido:', err.message);
   }
+};
+
+export const notifyOrderShippingQuoted = async (order) => {
+  return createNotification({
+    userId:  order.user_id,
+    type:    'ORDER',
+    title:   'Costo de envío disponible',
+    message: `El costo de envío de tu orden #${order.order_number} fue calculado: $${Number(order.shipping_cost).toLocaleString('es-AR')}. Total final: $${Number(order.total).toLocaleString('es-AR')}. Ya podés abonar.`,
+    metadata: { orderId: order.id, orderNumber: order.order_number, status: order.status, link: `/pedidos/${order.id}` },
+    sendEmail: true,
+    emailPayload: async () => {
+      const user = await User.findByPk(order.user_id, { attributes: ['email', 'first_name'] });
+      return sendOrderStatusEmail({ to: user.email, userName: user.first_name, order, title: 'Costo de envío disponible' });
+    }
+  });
 };

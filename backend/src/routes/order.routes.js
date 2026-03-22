@@ -11,7 +11,7 @@ import {
   cancelOrder
 } from '../controllers/order.controller.js';
 import { authenticateToken, authorizeRole } from '../middlewares/auth.middleware.js';
-import { uploadProof } from '../middlewares/upload.middleware.js';
+import { uploadPaymentProof } from '../middlewares/upload.middleware.js';
 import {
   validateCreateOrder,
   validateSetShipping,
@@ -28,7 +28,7 @@ const router = express.Router();
 router.post('/',                  authenticateToken,                              validateCreateOrder,      createOrder);
 router.get('/',                   authenticateToken,                              validateGetOrders,        getAllOrders);
 router.get('/:id',                authenticateToken, validateId,                                           getOrderById);
-router.post('/:id/proof',         authenticateToken, validateId, uploadProof,                              uploadOrderProof);
+router.post('/:id/proof',         authenticateToken, validateId, uploadPaymentProof,                              uploadOrderProof);
 router.patch('/:id/cancel',       authenticateToken, validateId,                                           cancelOrder);
 
 // ========== Admin ==========

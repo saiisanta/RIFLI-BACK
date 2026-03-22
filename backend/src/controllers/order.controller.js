@@ -14,7 +14,7 @@ import path from 'path';
 import {
   notifyOrderStatusChange,
   notifyAdminNewOrder,
-  notifyAdminOrderProofUploaded,
+  notifyAdminProofUploaded,
   notifyOrderShippingQuoted
 } from '../services/notifications.service.js';
 
@@ -219,7 +219,7 @@ export const getOrderById = async (req, res) => {
       include: [
         { model: User, as: 'customer', attributes: { exclude: ['password'] } },
         { model: Address, as: 'shippingAddress' },
-        { model: PaymentOrderProof, as: 'paymentProofs' }
+        { model: PaymentOrderProof, as: 'paymentOrderProofs' }
       ]
     });
 
@@ -312,7 +312,7 @@ export const uploadOrderProof = async (req, res) => {
 
     await order.update({ payment_status: 'PROOF_UPLOADED' });
 
-    notifyAdminOrderProofUploaded(order).catch(console.error);
+    notifyAdminProofUploaded(order).catch(console.error);
 
     res.json({ message: 'Comprobante subido correctamente', proof });
   } catch (err) {
