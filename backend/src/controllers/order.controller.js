@@ -203,6 +203,7 @@ export const getAllOrders = async (req, res) => {
           attributes: ["id", "first_name", "last_name", "email"],
         },
         { model: Address, as: "shippingAddress" },
+        { model: PaymentOrderProof, as: "paymentOrderProofs" }
       ],
       order: [["createdAt", "DESC"]],
       limit: Number(limit),
@@ -233,6 +234,7 @@ export const getOrderById = async (req, res) => {
         { model: User, as: "customer", attributes: { exclude: ["password"] } },
         { model: Address, as: "shippingAddress" },
         { model: PaymentOrderProof, as: "paymentOrderProofs" },
+        { model: PaymentOrderProof, as: "paymentOrderProofs" }
       ],
     });
 
@@ -412,7 +414,7 @@ export const reviewOrderProof = async (req, res) => {
     }
 
     const proof = await PaymentOrderProof.findOne({
-      where: { id: proof_id, order_id: order.id },
+      where: { id: proof_id, related_id: order.id, related_type: 'ORDER' },
       transaction,
     });
     if (!proof) {

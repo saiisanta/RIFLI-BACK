@@ -48,7 +48,7 @@ Order.belongsTo(Address, { foreignKey: 'address_id', as: 'shippingAddress' });
 Address.hasMany(Order, { foreignKey: 'address_id', as: 'orders' });
 
 // ============ PAYMENT PROOF RELATIONS (solo Orders) ============
-Order.hasMany(PaymentOrderProof, { foreignKey: 'order_id', as: 'paymentOrderProofs' });
+Order.hasMany(PaymentOrderProof, { foreignKey: 'related_id', as: 'paymentOrderProofs' });
 PaymentOrderProof.belongsTo(Order, { foreignKey: 'order_id', as: 'order' });
 PaymentOrderProof.belongsTo(User, { foreignKey: 'user_id', as: 'user' });
 PaymentOrderProof.belongsTo(User, { foreignKey: 'reviewed_by', as: 'reviewer' });
