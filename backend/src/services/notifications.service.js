@@ -245,27 +245,17 @@ export const notifyAdminQuoteRejected = async (quote) => {
   ));
 };
 
-export const notifyAdminProofUploaded = async (entity, paymentType, entityType = 'quote') => {
+export const notifyAdminProofUploaded = async (quote, paymentType) => {
   const adminIds = await getAdminIds();
   const label = paymentType === 'deposit' ? 'seña' : 'pago final';
-
-  const isQuote = entityType === 'quote';
-  const number  = isQuote ? entity.quote_number : entity.order_number;
-  const link    = isQuote ? `/admin/quotes` : `/admin/pedidos/${entity.id}`;
-  const title   = isQuote
-    ? 'Nuevo comprobante de pago — Presupuesto'
-    : 'Nuevo comprobante de pago — Orden';
-  const message = isQuote
-    ? `El cliente subió el comprobante de ${label} del presupuesto #${number}.`
-    : `El cliente subió el comprobante de la orden #${number}.`;
-
+  
   await Promise.all(adminIds.map(adminId =>
     createNotification({
-      userId:   adminId,
-      type:     'ADMIN',
-      title,
-      message,
-      metadata: { number, paymentType, link }
+      userId: adminId,
+      type: 'ADMIN',
+      title: 'Nuevo comprobante de pago',
+      message: `El cliente subió el comprobante de ${label} del presupuesto #${quote.quote_number}. Revisalo para aprobar o rechazar.`,
+      metadata: {  quoteNumber: quote.quote_number, paymentType, link: `/admin/quotes` },
     })
   ));
 };
