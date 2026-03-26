@@ -56,7 +56,7 @@ export const validateUpdateProfile = [
       const docType = req.body.document_type;
 
       if (docType === 'DNI') {
-        if (!/^[0-9]{7,8}$/.test(value)) {
+        if (!/^[0-9]{7,11}$/.test(value)) {
           throw new Error('El DNI debe tener entre 7 y 8 dígitos');
         }
       } else if (docType === 'CUIL' || docType === 'CUIT') {

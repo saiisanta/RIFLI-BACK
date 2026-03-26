@@ -26,8 +26,8 @@ const User = sequelize.define('User', {
     allowNull: true,
     unique: true,
     validate: {
-      // Validar formato DNI argentino (7-8 dígitos)
-      is: /^[0-9]{7,8}$/
+      // Validar formato DNI argentino (7-11 dígitos)
+      is: /^[0-9]{7,11}$/
     }
   },
 
