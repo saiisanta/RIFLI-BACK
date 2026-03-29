@@ -250,6 +250,13 @@ export const changePassword = async (req, res) => {
       return res.status(400).json({ error: 'Contraseña actual incorrecta' });
     }
 
+    const isSamePassword = await bcrypt.compare(newPassword, user.password);
+    if (isSamePassword) {
+      return res.status(400).json({
+        error: 'La nueva contraseña no puede ser igual a la anterior'
+      });
+    }
+
     // Actualizar contraseña
     const hashedPassword = await bcrypt.hash(newPassword, 10);
     user.password = hashedPassword;
@@ -345,6 +352,13 @@ export const resetPassword = async (req, res) => {
       });
     }
 
+    const isSamePassword = await bcrypt.compare(newPassword, user.password);
+    if (isSamePassword) {
+      return res.status(400).json({
+        error: 'La nueva contraseña no puede ser igual a la anterior'
+      });
+    }
+    
     // Actualizar contraseña
     const hashedPassword = await bcrypt.hash(newPassword, 10);
     user.password = hashedPassword;
