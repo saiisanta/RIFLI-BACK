@@ -1,9 +1,209 @@
 // services/email.service.js
-import { Resend } from 'resend';
+import { Resend } from "resend";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-// Mail de recuperación de contraseña 
+// Estilos base compartidos (siguiendo el diseño de profile)
+const emailBaseStyles = `
+  body {
+    margin: 0;
+    padding: 0;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    background: #0a0a0a;
+    color: #ffffff;
+  }
+  .email-wrapper {
+    background: #0a0a0a;
+    padding: 40px 20px;
+  }
+  .email-container {
+    max-width: 600px;
+    margin: 0 auto;
+    background: #1a1a1a;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+  }
+  .email-header {
+    background: linear-gradient(135deg, #ffca2c 0%, #ffd95a 100%);
+    padding: 40px 30px;
+    text-align: center;
+    position: relative;
+  }
+  .email-header::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23000000' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    opacity: 0.3;
+  }
+  .email-header-icon {
+    font-size: 48px;
+    margin-bottom: 12px;
+    position: relative;
+  }
+  .email-header-title {
+    font-size: 28px;
+    font-weight: 900;
+    color: #000000;
+    margin: 0;
+    letter-spacing: -0.5px;
+    position: relative;
+  }
+  .email-content {
+    padding: 40px 30px;
+    background: #151515;
+  }
+  .email-text {
+    color: #ffffff;
+    font-size: 16px;
+    line-height: 1.6;
+    margin: 0 0 20px 0;
+  }
+  .email-text-muted {
+    color: #9ca3af;
+  }
+
+   a {
+    color: inherit;
+    text-decoration: none;
+  }
+  .email-button {
+    display: inline-block;
+    padding: 16px 32px;
+    background: linear-gradient(135deg, #ffca2c 0%, #ffd95a 100%);
+    color: #000000 !important;
+    text-decoration: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 700;
+    margin: 24px 0;
+    box-shadow: 0 4px 12px rgba(255, 202, 44, 0.3);
+    transition: all 0.3s ease;
+  }
+  .email-info-box {
+    background: rgba(255, 202, 44, 0.05);
+    border-left: 4px solid #ffca2c;
+    padding: 20px;
+    margin: 24px 0;
+    border-radius: 8px;
+  }
+  .email-warning-box {
+    background: rgba(239, 68, 68, 0.1);
+    border-left: 4px solid #ef4444;
+    padding: 20px;
+    margin: 24px 0;
+    border-radius: 8px;
+  }
+  .email-success-box {
+    background: rgba(16, 185, 129, 0.1);
+    border-left: 4px solid #10b981;
+    padding: 20px;
+    margin: 24px 0;
+    border-radius: 8px;
+  }
+  .email-url-box {
+    background: #0a0a0a;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    padding: 16px;
+    border-radius: 8px;
+    word-break: break-all;
+    font-size: 14px;
+    color: #9ca3af;
+    margin: 20px 0;
+  }
+  .email-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 24px 0;
+    background: #0a0a0a;
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  .email-table th {
+    background: #1a1a1a;
+    padding: 12px;
+    text-align: left;
+    font-weight: 700;
+    color: #9ca3af;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .email-table td {
+    padding: 12px;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    color: #ffffff;
+  }
+  .email-badge {
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .badge-warning {
+    background: rgba(255, 202, 44, 0.15);
+    color: #ffca2c;
+    border: 1px solid rgba(255, 202, 44, 0.3);
+  }
+  .badge-success {
+    background: rgba(16, 185, 129, 0.15);
+    color: #10b981;
+    border: 1px solid rgba(16, 185, 129, 0.3);
+  }
+  .badge-danger {
+    background: rgba(239, 68, 68, 0.15);
+    color: #ef4444;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+  }
+  .email-footer {
+    padding: 30px;
+    text-align: center;
+    background: #0a0a0a;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+  }
+  .email-footer-text {
+    color: #6b7280;
+    font-size: 14px;
+    margin: 8px 0;
+  }
+  .email-logo {
+    font-size: 24px;
+    font-weight: 900;
+    color: #ffca2c;
+    margin-bottom: 12px;
+    letter-spacing: -0.5px;
+  }
+
+   .email-button:link,
+  .email-button:visited,
+  .email-button:hover,
+  .email-button:active {
+    color: #000000 !important;
+    text-decoration: none !important;
+  }
+    
+  @media only screen and (max-width: 600px) {
+    .email-wrapper {
+      padding: 20px 10px;
+    }
+    .email-content {
+      padding: 30px 20px;
+    }
+    .email-header {
+      padding: 30px 20px;
+    }
+    .email-header-title {
+      font-size: 24px;
+    }
+  }
+`;
+
+// Mail de recuperación de contraseña
 export const sendPasswordResetEmail = async ({ to, resetToken }) => {
   const resetUrl = `${process.env.FRONTEND_URL}reset-password/${resetToken}`;
 
@@ -11,230 +211,185 @@ export const sendPasswordResetEmail = async ({ to, resetToken }) => {
     const { data, error } = await resend.emails.send({
       from: process.env.EMAIL_FROM,
       to: to,
-      subject: 'Recuperación de contraseña - RIFLI',
+      subject: "🔐 Recuperación de contraseña - RIFLI",
       html: `
         <!DOCTYPE html>
         <html>
           <head>
             <meta charset="utf-8">
-            <style>
-              body {
-                font-family: Arial, sans-serif;
-                line-height: 1.6;
-                color: #333;
-              }
-              .container {
-                max-width: 600px;
-                margin: 0 auto;
-                padding: 20px;
-              }
-              .header {
-                background-color: #4CAF50;
-                color: white;
-                padding: 20px;
-                text-align: center;
-                border-radius: 5px 5px 0 0;
-              }
-              .content {
-                background-color: #f9f9f9;
-                padding: 30px;
-                border-radius: 0 0 5px 5px;
-              }
-              .button {
-                display: inline-block;
-                padding: 12px 24px;
-                background-color: #4CAF50;
-                color: white;
-                text-decoration: none;
-                border-radius: 5px;
-                margin: 20px 0;
-              }
-              .footer {
-                text-align: center;
-                margin-top: 20px;
-                color: #666;
-                font-size: 12px;
-              }
-              .warning {
-                background-color: #fff3cd;
-                border-left: 4px solid #ffc107;
-                padding: 10px;
-                margin: 20px 0;
-              }
-            </style>
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <style>${emailBaseStyles}</style>
           </head>
           <body>
-            <div class="container">
-              <div class="header">
-                <h1>Recuperación de Contraseña</h1>
-              </div>
-              <div class="content">
-                <p>Hola,</p>
-                <p>Recibimos una solicitud para restablecer la contraseña de tu cuenta en <strong>RIFLI</strong>.</p>
-                <p>Hacé click en el siguiente botón para crear una nueva contraseña:</p>
-                
-                <center>
-                  <a href="${resetUrl}" class="button">Restablecer Contraseña</a>
-                </center>
-                
-                <p>O copiá y pegá este enlace en tu navegador:</p>
-                <p style="background-color: #e9ecef; padding: 10px; border-radius: 3px; word-break: break-all;">
-                  ${resetUrl}
-                </p>
-                
-                <div class="warning">
-                  <strong>⚠️ Importante:</strong> Este enlace expira en <strong>1 hora</strong>.
+            <div class="email-wrapper">
+              <div class="email-container">
+                <div class="email-header">
+                  <div class="email-header-icon">🔐</div>
+                  <h1 class="email-header-title">Recuperación de Contraseña</h1>
                 </div>
                 
-                <p>Si no solicitaste este cambio, podés ignorar este email. Tu contraseña permanecerá sin cambios.</p>
-              </div>
-              <div class="footer">
-                <p>Este es un email automático, por favor no respondas.</p>
-                <p>&copy; ${new Date().getFullYear()} RIFLI. Todos los derechos reservados.</p>
+                <div class="email-content">
+                  <p class="email-text">
+                    Hola,
+                  </p>
+                  <p class="email-text">
+                    Recibimos una solicitud para restablecer la contraseña de tu cuenta en <strong>RIFLI</strong>.
+                  </p>
+                  <p class="email-text">
+                    Hacé click en el siguiente botón para crear una nueva contraseña:
+                  </p>
+                  
+                  <center>
+                    <a href="${resetUrl}" class="email-button">Restablecer Contraseña</a>
+                  </center>
+                  
+                  <p class="email-text email-text-muted" style="font-size: 14px;">
+                    O copiá y pegá este enlace en tu navegador:
+                  </p>
+                  <div class="email-url-box">
+                    ${resetUrl}
+                  </div>
+                  
+                  <div class="email-warning-box">
+                    <strong style="color: #ef4444;">⚠️ Importante:</strong>
+                    <p style="margin: 8px 0 0 0; color: #9ca3af;">
+                      Este enlace expira en <strong style="color: #ffffff;">1 hora</strong>.
+                    </p>
+                  </div>
+                  
+                  <p class="email-text email-text-muted" style="font-size: 14px;">
+                    Si no solicitaste este cambio, podés ignorar este email. Tu contraseña permanecerá sin cambios.
+                  </p>
+                </div>
+                
+                <div class="email-footer">
+                  <div class="email-logo">RIFLI</div>
+                  <p class="email-footer-text">Este es un email automático, por favor no respondas.</p>
+                  <p class="email-footer-text">&copy; ${new Date().getFullYear()} RIFLI. Todos los derechos reservados.</p>
+                </div>
               </div>
             </div>
           </body>
         </html>
-      `
+      `,
     });
 
     if (error) {
-      console.error('Error enviando email:', error);
-      throw new Error('Error al enviar el email');
+      console.error("Error enviando email:", error);
+      throw new Error("Error al enviar el email");
     }
 
-    console.log('✅ Email enviado:', data);
+    console.log("✅ Email enviado:", data);
     return data;
   } catch (error) {
-    console.error('Error en sendPasswordResetEmail:', error);
+    console.error("Error en sendPasswordResetEmail:", error);
     throw error;
   }
 };
 
 // Mail de verificación de email
-export const sendVerificationEmail = async ({ to, verificationToken, userName }) => {
+export const sendVerificationEmail = async ({
+  to,
+  verificationToken,
+  userName,
+}) => {
   const verificationUrl = `${process.env.FRONTEND_URL}verify-email/${verificationToken}`;
 
   try {
     const { data, error } = await resend.emails.send({
       from: process.env.EMAIL_FROM,
       to: to,
-      subject: '✉️ Verificá tu cuenta en RIFLI',
+      subject: "✉️ Verificá tu cuenta en RIFLI",
       html: `
         <!DOCTYPE html>
         <html>
           <head>
             <meta charset="utf-8">
-            <style>
-              body {
-                font-family: Arial, sans-serif;
-                line-height: 1.6;
-                color: #333;
-              }
-              .container {
-                max-width: 600px;
-                margin: 0 auto;
-                padding: 20px;
-              }
-              .header {
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                color: white;
-                padding: 30px 20px;
-                text-align: center;
-                border-radius: 10px 10px 0 0;
-              }
-              .content {
-                background-color: #ffffff;
-                padding: 40px 30px;
-                border: 1px solid #e0e0e0;
-                border-top: none;
-              }
-              .button {
-                display: inline-block;
-                padding: 15px 30px;
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                color: white;
-                text-decoration: none;
-                border-radius: 25px;
-                margin: 25px 0;
-                font-weight: bold;
-                box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
-              }
-              .footer {
-                text-align: center;
-                margin-top: 30px;
-                color: #666;
-                font-size: 12px;
-                padding-top: 20px;
-                border-top: 1px solid #e0e0e0;
-              }
-              .info-box {
-                background-color: #f0f7ff;
-                border-left: 4px solid #2196F3;
-                padding: 15px;
-                margin: 20px 0;
-                border-radius: 4px;
-              }
-              .welcome-icon {
-                font-size: 50px;
-                margin-bottom: 10px;
-              }
-            </style>
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <style>${emailBaseStyles}</style>
           </head>
           <body>
-            <div class="container">
-              <div class="header">
-                <div class="welcome-icon">🎉</div>
-                <h1 style="margin: 0;">¡Bienvenido a RIFLI!</h1>
-              </div>
-              <div class="content">
-                <p>Hola <strong>${userName}</strong>,</p>
-                <p>¡Gracias por registrarte en RIFLI! Estamos emocionados de tenerte con nosotros.</p>
-                <p>Para completar tu registro y activar tu cuenta, por favor verificá tu dirección de email haciendo click en el botón de abajo:</p>
-                
-                <center>
-                  <a href="${verificationUrl}" class="button">✓ Verificar mi email</a>
-                </center>
-                
-                <p>O copiá y pegá este enlace en tu navegador:</p>
-                <p style="background-color: #f5f5f5; padding: 12px; border-radius: 5px; word-break: break-all; font-size: 14px;">
-                  ${verificationUrl}
-                </p>
-                
-                <div class="info-box">
-                  <strong>ℹ️ Importante:</strong> Este enlace expira en <strong>24 horas</strong>. Si no verificás tu email en ese tiempo, deberás solicitar un nuevo enlace.
+            <div class="email-wrapper">
+              <div class="email-container">
+                <div class="email-header">
+                  <div class="email-header-icon">🎉</div>
+                  <h1 class="email-header-title">¡Bienvenido a RIFLI!</h1>
                 </div>
                 
-                <p>Si no creaste una cuenta en RIFLI, podés ignorar este email.</p>
+                <div class="email-content">
+                  <p class="email-text">
+                    Hola <strong>${userName}</strong>,
+                  </p>
+                  <p class="email-text">
+                    ¡Gracias por registrarte en RIFLI! Estamos emocionados de tenerte con nosotros.
+                  </p>
+                  <p class="email-text">
+                    Para completar tu registro y activar tu cuenta, por favor verificá tu dirección de email:
+                  </p>
+                  
+                  <center>
+                    <a href="${verificationUrl}" class="email-button">✓ Verificar mi email</a>
+                  </center>
+                  
+                  <p class="email-text email-text-muted" style="font-size: 14px;">
+                    O copiá y pegá este enlace en tu navegador:
+                  </p>
+                  <div class="email-url-box">
+                    ${verificationUrl}
+                  </div>
+                  
+                  <div class="email-info-box">
+                    <strong style="color: #ffca2c;">ℹ️ Importante:</strong>
+                    <p style="margin: 8px 0 0 0; color: #9ca3af;">
+                      Este enlace expira en <strong style="color: #ffffff;">24 horas</strong>. Si no verificás tu email en ese tiempo, deberás solicitar un nuevo enlace.
+                    </p>
+                  </div>
+                  
+                  <p class="email-text email-text-muted" style="font-size: 14px;">
+                    Si no creaste una cuenta en RIFLI, podés ignorar este email.
+                  </p>
+                  
+                  <p class="email-text" style="margin-top: 30px;">
+                    ¡Nos vemos pronto! 👋
+                  </p>
+                  <p class="email-text">
+                    <strong>El equipo de RIFLI</strong>
+                  </p>
+                </div>
                 
-                <p style="margin-top: 30px;">¡Nos vemos pronto! 👋</p>
-                <p><strong>El equipo de RIFLI</strong></p>
-              </div>
-              <div class="footer">
-                <p>Este es un email automático, por favor no respondas.</p>
-                <p>&copy; ${new Date().getFullYear()} RIFLI. Todos los derechos reservados.</p>
+                <div class="email-footer">
+                  <div class="email-logo">RIFLI</div>
+                  <p class="email-footer-text">Este es un email automático, por favor no respondas.</p>
+                  <p class="email-footer-text">&copy; ${new Date().getFullYear()} RIFLI. Todos los derechos reservados.</p>
+                </div>
               </div>
             </div>
           </body>
         </html>
-      `
+      `,
     });
 
     if (error) {
-      console.error('Error enviando email de verificación:', error);
-      throw new Error('Error al enviar el email');
+      console.error("Error enviando email de verificación:", error);
+      throw new Error("Error al enviar el email");
     }
 
-    console.log('✅ Email de verificación enviado:', data);
+    console.log("✅ Email de verificación enviado:", data);
     return data;
   } catch (error) {
-    console.error('Error en sendVerificationEmail:', error);
+    console.error("Error en sendVerificationEmail:", error);
     throw error;
   }
 };
 
-// Mail de cambio de estado de Quote 
-export const sendQuoteStatusEmail = async ({ to, userName, quote, title, message }) => {
+// Mail de cambio de estado de Quote
+export const sendQuoteStatusEmail = async ({
+  to,
+  userName,
+  quote,
+  title,
+  message,
+}) => {
   try {
     const { data, error } = await resend.emails.send({
       from: process.env.EMAIL_FROM,
@@ -245,74 +400,90 @@ export const sendQuoteStatusEmail = async ({ to, userName, quote, title, message
         <html>
           <head>
             <meta charset="utf-8">
-            <style>
-              body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-              .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-              .header { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); color: white; padding: 25px 20px; text-align: center; border-radius: 10px 10px 0 0; }
-              .content { background-color: #ffffff; padding: 35px 30px; border: 1px solid #e0e0e0; border-top: none; }
-              .button { display: inline-block; padding: 13px 28px; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); color: white; text-decoration: none; border-radius: 6px; margin: 20px 0; font-weight: bold; }
-              .status-box { background-color: #f0f4ff; border-left: 4px solid #3a86ff; padding: 15px; margin: 20px 0; border-radius: 4px; }
-              .footer { text-align: center; margin-top: 25px; color: #888; font-size: 12px; padding-top: 20px; border-top: 1px solid #e0e0e0; }
-            </style>
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <style>${emailBaseStyles}</style>
           </head>
           <body>
-            <div class="container">
-              <div class="header">
-                <h2 style="margin:0;">Actualización de Presupuesto</h2>
-              </div>
-              <div class="content">
-                <p>Hola <strong>${userName}</strong>,</p>
-                <div class="status-box">
-                  <strong>${title}</strong><br/>
-                  <p style="margin: 8px 0 0;">${message}</p>
+            <div class="email-wrapper">
+              <div class="email-container">
+                <div class="email-header">
+                  <div class="email-header-icon">📋</div>
+                  <h1 class="email-header-title">Actualización de Presupuesto</h1>
                 </div>
-                <p>Podés ver todos los detalles de tu presupuesto <strong>#${quote.quote_number}</strong> desde tu cuenta:</p>
-                <center>
-                  <a href="${process.env.FRONTEND_URL}/presupuestos" class="button">Ver presupuesto</a>
-                </center>
-                <p>Si tenés dudas, contactanos por WhatsApp.</p>
-              </div>
-              <div class="footer">
-                <p>Este es un email automático, por favor no respondas.</p>
-                <p>&copy; ${new Date().getFullYear()} RIFLI. Todos los derechos reservados.</p>
+                
+                <div class="email-content">
+                  <p class="email-text">
+                    Hola <strong>${userName}</strong>,
+                  </p>
+                  
+                  <div class="email-info-box">
+                    <strong style="color: #ffca2c; font-size: 16px;">${title}</strong>
+                    <p style="margin: 12px 0 0 0; color: #ffffff; font-size: 15px;">
+                      ${message}
+                    </p>
+                  </div>
+                  
+                  <p class="email-text">
+                    Podés ver todos los detalles de tu presupuesto <strong>#${quote.quote_number}</strong> desde tu cuenta:
+                  </p>
+                  
+                  <center>
+                    <a href="${process.env.FRONTEND_URL}/presupuestos" class="email-button">Ver presupuesto</a>
+                  </center>
+                  
+                  <p class="email-text email-text-muted" style="font-size: 14px; margin-top: 30px;">
+                    Si tenés dudas, contactanos por WhatsApp.
+                  </p>
+                </div>
+                
+                <div class="email-footer">
+                  <div class="email-logo">RIFLI</div>
+                  <p class="email-footer-text">Este es un email automático, por favor no respondas.</p>
+                  <p class="email-footer-text">&copy; ${new Date().getFullYear()} RIFLI. Todos los derechos reservados.</p>
+                </div>
               </div>
             </div>
           </body>
         </html>
       `,
-        headers: {
-          'X-Entity-Ref-ID': new Date().getTime().toString(),
+      headers: {
+        "X-Entity-Ref-ID": new Date().getTime().toString(),
+      },
+      tags: [
+        {
+          name: "click_tracking",
+          value: "false",
         },
-        tags: [
-          {
-            name: 'click_tracking',
-            value: 'false' // desactiva el click tracking 
-          }
-        ]
+      ],
     });
 
-    if (error) throw new Error('Error al enviar email de estado de quote');
-    console.log('Email de estado de quote enviado:', data);
+    if (error) throw new Error("Error al enviar email de estado de quote");
+    console.log("✅ Email de estado de quote enviado:", data);
     return data;
   } catch (error) {
-    console.error('Error en sendQuoteStatusEmail:', error);
+    console.error("Error en sendQuoteStatusEmail:", error);
     throw error;
   }
 };
 
-// Mail de cambio de estado de pago (quote) 
-export const sendPaymentStatusEmail = async ({ to, userName, quote, paymentType, status }) => {
-  const isDeposit = paymentType === 'deposit';
-  const paymentLabel = isDeposit ? 'seña' : 'pago final';
-  const isApproved = status === 'PAID';
+// Mail de cambio de estado de pago (quote)
+export const sendPaymentStatusEmail = async ({
+  to,
+  userName,
+  quote,
+  paymentType,
+  status,
+}) => {
+  const isDeposit = paymentType === "deposit";
+  const paymentLabel = isDeposit ? "seña" : "pago final";
+  const isApproved = status === "PAID";
 
   const subject = isApproved
     ? `✅ Tu ${paymentLabel} fue aprobado - RIFLI`
     : `⚠️ Comprobante de ${paymentLabel} rechazado - RIFLI`;
 
-  const headerColor = isApproved ? '#2e7d32' : '#c62828';
-  const boxColor   = isApproved ? '#f1f8e9' : '#fff3f3';
-  const boxBorder  = isApproved ? '#66bb6a' : '#ef9a9a';
+  const headerIcon = isApproved ? "✅" : "⚠️";
+  const headerText = isApproved ? "Pago Aprobado" : "Pago Rechazado";
 
   try {
     const { data, error } = await resend.emails.send({
@@ -324,63 +495,78 @@ export const sendPaymentStatusEmail = async ({ to, userName, quote, paymentType,
         <html>
           <head>
             <meta charset="utf-8">
-            <style>
-              body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-              .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-              .header { background-color: ${headerColor}; color: white; padding: 25px 20px; text-align: center; border-radius: 10px 10px 0 0; }
-              .content { background-color: #ffffff; padding: 35px 30px; border: 1px solid #e0e0e0; border-top: none; }
-              .status-box { background-color: ${boxColor}; border-left: 4px solid ${boxBorder}; padding: 15px; margin: 20px 0; border-radius: 4px; }
-              .button { display: inline-block; padding: 13px 28px; background-color: ${headerColor}; color: white; text-decoration: none; border-radius: 6px; margin: 20px 0; font-weight: bold; }
-              .footer { text-align: center; margin-top: 25px; color: #888; font-size: 12px; padding-top: 20px; border-top: 1px solid #e0e0e0; }
-            </style>
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <style>${emailBaseStyles}</style>
           </head>
           <body>
-            <div class="container">
-              <div class="header">
-                <h2 style="margin:0;">${isApproved ? '✅' : '⚠️'} Pago ${isApproved ? 'aprobado' : 'rechazado'}</h2>
-              </div>
-              <div class="content">
-                <p>Hola <strong>${userName}</strong>,</p>
-                <div class="status-box">
-                  ${isApproved
-                    ? `<p>Tu comprobante de <strong>${paymentLabel}</strong> del presupuesto <strong>#${quote.quote_number}</strong> fue verificado y aprobado.</p>`
-                    : `<p>Tu comprobante de <strong>${paymentLabel}</strong> del presupuesto <strong>#${quote.quote_number}</strong> fue rechazado. Por favor ingresá a tu cuenta y subí un nuevo comprobante.</p>`
-                  }
+            <div class="email-wrapper">
+              <div class="email-container">
+                <div class="email-header">
+                  <div class="email-header-icon">${headerIcon}</div>
+                  <h1 class="email-header-title">${headerText}</h1>
                 </div>
-                <center>
-                  <a href="${process.env.FRONTEND_URL}/presupuestos" class="button">Ver presupuesto</a>
-                </center>
-                <p>Si tenés dudas, contactanos por WhatsApp.</p>
-              </div>
-              <div class="footer">
-                <p>Este es un email automático, por favor no respondas.</p>
-                <p>&copy; ${new Date().getFullYear()} RIFLI. Todos los derechos reservados.</p>
+                
+                <div class="email-content">
+                  <p class="email-text">
+                    Hola <strong>${userName}</strong>,
+                  </p>
+                  
+                  ${
+                    isApproved
+                      ? `<div class="email-success-box">
+                        <strong style="color: #10b981; font-size: 16px;">✓ Comprobante Verificado</strong>
+                        <p style="margin: 12px 0 0 0; color: #ffffff;">
+                          Tu comprobante de <strong>${paymentLabel}</strong> del presupuesto <strong>#${quote.quote_number}</strong> fue verificado y aprobado exitosamente.
+                        </p>
+                      </div>`
+                      : `<div class="email-warning-box">
+                        <strong style="color: #ef4444; font-size: 16px;">✗ Comprobante Rechazado</strong>
+                        <p style="margin: 12px 0 0 0; color: #ffffff;">
+                          Tu comprobante de <strong>${paymentLabel}</strong> del presupuesto <strong>#${quote.quote_number}</strong> fue rechazado. Por favor ingresá a tu cuenta y subí un nuevo comprobante.
+                        </p>
+                      </div>`
+                  }
+                  
+                  <center>
+                    <a href="${process.env.FRONTEND_URL}/presupuestos" class="email-button">Ver presupuesto</a>
+                  </center>
+                  
+                  <p class="email-text email-text-muted" style="font-size: 14px; margin-top: 30px;">
+                    Si tenés dudas, contactanos por WhatsApp.
+                  </p>
+                </div>
+                
+                <div class="email-footer">
+                  <div class="email-logo">RIFLI</div>
+                  <p class="email-footer-text">Este es un email automático, por favor no respondas.</p>
+                  <p class="email-footer-text">&copy; ${new Date().getFullYear()} RIFLI. Todos los derechos reservados.</p>
+                </div>
               </div>
             </div>
           </body>
         </html>
       `,
-        headers: {
-          'X-Entity-Ref-ID': new Date().getTime().toString(),
+      headers: {
+        "X-Entity-Ref-ID": new Date().getTime().toString(),
+      },
+      tags: [
+        {
+          name: "click_tracking",
+          value: "false",
         },
-        tags: [
-          {
-            name: 'click_tracking',
-            value: 'false' // desactiva el click tracking 
-          }
-        ]
+      ],
     });
 
-    if (error) throw new Error('Error al enviar email de pago');
-    console.log('✅ Email de pago enviado:', data);
+    if (error) throw new Error("Error al enviar email de pago");
+    console.log("✅ Email de pago enviado:", data);
     return data;
   } catch (error) {
-    console.error('Error en sendPaymentStatusEmail:', error);
+    console.error("Error en sendPaymentStatusEmail:", error);
     throw error;
   }
 };
 
-// Mail de cambio de estado de Order 
+// Mail de cambio de estado de Order
 export const sendOrderStatusEmail = async ({ to, userName, order, title }) => {
   try {
     const { data, error } = await resend.emails.send({
@@ -392,143 +578,217 @@ export const sendOrderStatusEmail = async ({ to, userName, order, title }) => {
         <html>
           <head>
             <meta charset="utf-8">
-            <style>
-              body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-              .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-              .header { background: linear-gradient(135deg, #4CAF50 0%, #2e7d32 100%); color: white; padding: 25px 20px; text-align: center; border-radius: 10px 10px 0 0; }
-              .content { background-color: #ffffff; padding: 35px 30px; border: 1px solid #e0e0e0; border-top: none; }
-              .button { display: inline-block; padding: 13px 28px; background-color: #4CAF50; color: white; text-decoration: none; border-radius: 6px; margin: 20px 0; font-weight: bold; }
-              .info-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #f0f0f0; }
-              .footer { text-align: center; margin-top: 25px; color: #888; font-size: 12px; padding-top: 20px; border-top: 1px solid #e0e0e0; }
-            </style>
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <style>${emailBaseStyles}</style>
           </head>
           <body>
-            <div class="container">
-              <div class="header">
-                <h2 style="margin:0;">${title}</h2>
-              </div>
-              <div class="content">
-                <p>Hola <strong>${userName}</strong>,</p>
-                <p>Tu pedido <strong>#${order.order_number}</strong> tiene una novedad:</p>
-                <table width="100%" cellpadding="8" style="border-collapse: collapse; background: #f9f9f9; border-radius: 6px;">
-                  <tr><td style="color:#666;">Número de pedido</td><td><strong>#${order.order_number}</strong></td></tr>
-                  <tr><td style="color:#666;">Estado</td><td><strong>${order.status}</strong></td></tr>
-                  ${order.tracking_number ? `<tr><td style="color:#666;">Seguimiento</td><td><strong>${order.tracking_number}</strong></td></tr>` : ''}
-                </table>
-                <center>
-                  <a href="${process.env.FRONTEND_URL}/pedidos/${order.id}" class="button">Ver mi pedido</a>
-                </center>
-              </div>
-              <div class="footer">
-                <p>Este es un email automático, por favor no respondas.</p>
-                <p>&copy; ${new Date().getFullYear()} RIFLI. Todos los derechos reservados.</p>
+            <div class="email-wrapper">
+              <div class="email-container">
+                <div class="email-header">
+                  <div class="email-header-icon">📦</div>
+                  <h1 class="email-header-title">${title}</h1>
+                </div>
+                
+                <div class="email-content">
+                  <p class="email-text">
+                    Hola <strong>${userName}</strong>,
+                  </p>
+                  <p class="email-text">
+                    Tu pedido <strong>#${order.order_number}</strong> tiene una novedad:
+                  </p>
+                  
+                  <table class="email-table">
+                    <tr>
+                      <td style="color: #9ca3af; font-weight: 600;">Número de pedido</td>
+                      <td style="text-align: right;"><strong>#${order.order_number}</strong></td>
+                    </tr>
+                    <tr>
+                      <td style="color: #9ca3af; font-weight: 600;">Estado</td>
+                      <td style="text-align: right;">
+                        <span class="email-badge badge-warning">${order.status}</span>
+                      </td>
+                    </tr>
+                    ${
+                      order.tracking_number
+                        ? `
+                    <tr>
+                      <td style="color: #9ca3af; font-weight: 600;">Seguimiento</td>
+                      <td style="text-align: right;"><strong>${order.tracking_number}</strong></td>
+                    </tr>
+                    `
+                        : ""
+                    }
+                  </table>
+                  
+                  <center>
+                    <a href="${process.env.FRONTEND_URL}/pedidos/${order.id}" class="email-button">Ver mi pedido</a>
+                  </center>
+                </div>
+                
+                <div class="email-footer">
+                  <div class="email-logo">RIFLI</div>
+                  <p class="email-footer-text">Este es un email automático, por favor no respondas.</p>
+                  <p class="email-footer-text">&copy; ${new Date().getFullYear()} RIFLI. Todos los derechos reservados.</p>
+                </div>
               </div>
             </div>
           </body>
         </html>
       `,
-        headers: {
-          'X-Entity-Ref-ID': new Date().getTime().toString(),
+      headers: {
+        "X-Entity-Ref-ID": new Date().getTime().toString(),
+      },
+      tags: [
+        {
+          name: "click_tracking",
+          value: "false",
         },
-        tags: [
-          {
-            name: 'click_tracking',
-            value: 'false' // desactiva el click tracking 
-          }
-        ]
+      ],
     });
 
-    if (error) throw new Error('Error al enviar email de orden');
-    console.log('✅ Email de orden enviado:', data);
+    if (error) throw new Error("Error al enviar email de orden");
+    console.log("✅ Email de orden enviado:", data);
     return data;
   } catch (error) {
-    console.error('Error en sendOrderStatusEmail:', error);
+    console.error("Error en sendOrderStatusEmail:", error);
     throw error;
   }
 };
 
 // Mail nueva orden generada por usuario (para admin)
 export const sendAdminNewOrderEmail = async ({ to, userName, order }) => {
-  const items = order.items.map(item =>
-    `<tr>
-      <td style="padding: 8px; border-bottom: 1px solid #f0f0f0;">${item.name}</td>
-      <td style="padding: 8px; border-bottom: 1px solid #f0f0f0; text-align:center;">${item.quantity}</td>
-      <td style="padding: 8px; border-bottom: 1px solid #f0f0f0; text-align:right;">$${Number(item.unit_price).toLocaleString('es-AR')}</td>
-      <td style="padding: 8px; border-bottom: 1px solid #f0f0f0; text-align:right;">$${Number(item.subtotal).toLocaleString('es-AR')}</td>
-    </tr>`
-  ).join('');
+  const items = order.items
+    .map(
+      (item) =>
+        `<tr>
+      <td style="padding: 12px; border-top: 1px solid rgba(255, 255, 255, 0.08); color: #ffffff;">${item.name}</td>
+      <td style="padding: 12px; border-top: 1px solid rgba(255, 255, 255, 0.08); text-align: center; color: #ffffff;">${item.quantity}</td>
+      <td style="padding: 12px; border-top: 1px solid rgba(255, 255, 255, 0.08); text-align: right; color: #ffffff;">$${Number(item.unit_price).toLocaleString("es-AR")}</td>
+      <td style="padding: 12px; border-top: 1px solid rgba(255, 255, 255, 0.08); text-align: right; font-weight: 700; color: #ffca2c;">$${Number(item.subtotal).toLocaleString("es-AR")}</td>
+    </tr>`,
+    )
+    .join("");
 
   const address = order.shipping_address_snapshot;
 
-  const { data, error } = await resend.emails.send({
-    ...emailDefaults,
-    to,
-    subject: `🛒 Nueva orden #${order.order_number} - RIFLI`,
-    html: `
-      <!DOCTYPE html>
-      <html>
-        <head><meta charset="utf-8"></head>
-        <body style="font-family: Arial, sans-serif; color: #333; margin: 0; padding: 0;">
-          <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
-            <div style="background: #1a1a2e; color: white; padding: 25px; text-align: center; border-radius: 10px 10px 0 0;">
-              <h2 style="margin: 0;">🛒 Nueva Orden de Compra</h2>
-              <p style="margin: 8px 0 0; opacity: 0.8;">Orden #${order.order_number}</p>
-            </div>
-            <div style="background: #fff; padding: 30px; border: 1px solid #e0e0e0; border-top: none; border-radius: 0 0 10px 10px;">
-              <p>Hola <strong>${userName}</strong>, se recibió una nueva orden que requiere cotización de envío.</p>
-              
-              <h3 style="color: #1a1a2e; border-bottom: 2px solid #f0f0f0; padding-bottom: 8px;">Productos</h3>
-              <table width="100%" cellpadding="0" cellspacing="0">
-                <thead>
-                  <tr style="background: #f9f9f9;">
-                    <th style="padding: 8px; text-align:left;">Producto</th>
-                    <th style="padding: 8px; text-align:center;">Cant.</th>
-                    <th style="padding: 8px; text-align:right;">Precio unit.</th>
-                    <th style="padding: 8px; text-align:right;">Subtotal</th>
-                  </tr>
-                </thead>
-                <tbody>${items}</tbody>
-                <tfoot>
-                  <tr>
-                    <td colspan="3" style="padding: 12px 8px; text-align:right; font-weight:bold;">Subtotal productos:</td>
-                    <td style="padding: 12px 8px; text-align:right; font-weight:bold;">$${Number(order.subtotal).toLocaleString('es-AR')}</td>
-                  </tr>
-                  <tr style="background: #fff3cd;">
-                    <td colspan="3" style="padding: 8px; text-align:right; font-weight:bold;">🚚 Envío:</td>
-                    <td style="padding: 8px; text-align:right; font-weight:bold;">Pendiente</td>
-                  </tr>
-                </tfoot>
-              </table>
+  try {
+    const { data, error } = await resend.emails.send({
+      from: process.env.EMAIL_FROM,
+      to,
+      subject: `🛒 Nueva orden #${order.order_number} - RIFLI`,
+      html: `
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <meta charset="utf-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <style>${emailBaseStyles}</style>
+          </head>
+          <body>
+            <div class="email-wrapper">
+              <div class="email-container">
+                <div class="email-header">
+                  <div class="email-header-icon">🛒</div>
+                  <h1 class="email-header-title">Nueva Orden de Compra</h1>
+                  <p style="margin: 8px 0 0 0; font-size: 18px; color: rgba(0, 0, 0, 0.7); font-weight: 600;">
+                    Orden #${order.order_number}
+                  </p>
+                </div>
+                
+                <div class="email-content">
+                  <p class="email-text">
+                    Hola <strong>${userName}</strong>,
+                  </p>
+                  <p class="email-text">
+                    Se recibió una nueva orden que requiere cotización de envío.
+                  </p>
+                  
+                  <div class="email-info-box">
+                    <strong style="color: #ffca2c; font-size: 16px;">⚠️ Acción Requerida</strong>
+                    <p style="margin: 8px 0 0 0; color: #9ca3af;">
+                      Esta orden necesita que cotices y configures el costo de envío antes de ser procesada.
+                    </p>
+                  </div>
+                  
+                  <h3 style="color: #ffca2c; margin: 32px 0 16px 0; font-size: 18px; font-weight: 700; border-bottom: 2px solid rgba(255, 202, 44, 0.2); padding-bottom: 8px;">
+                    📦 Productos
+                  </h3>
+                  <table class="email-table">
+                    <thead>
+                      <tr style="background: #1a1a1a;">
+                        <th style="padding: 12px; text-align: left; font-weight: 700; color: #9ca3af; font-size: 14px;">Producto</th>
+                        <th style="padding: 12px; text-align: center; font-weight: 700; color: #9ca3af; font-size: 14px;">Cant.</th>
+                        <th style="padding: 12px; text-align: right; font-weight: 700; color: #9ca3af; font-size: 14px;">Precio unit.</th>
+                        <th style="padding: 12px; text-align: right; font-weight: 700; color: #9ca3af; font-size: 14px;">Subtotal</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      ${items}
+                    </tbody>
+                    <tfoot>
+                      <tr>
+                        <td colspan="3" style="padding: 16px 12px; text-align: right; font-weight: 700; color: #ffffff; border-top: 2px solid rgba(255, 255, 255, 0.1);">
+                          Subtotal productos:
+                        </td>
+                        <td style="padding: 16px 12px; text-align: right; font-weight: 900; color: #ffca2c; font-size: 18px; border-top: 2px solid rgba(255, 255, 255, 0.1);">
+                          $${Number(order.subtotal).toLocaleString("es-AR")}
+                        </td>
+                      </tr>
+                      <tr style="background: rgba(255, 202, 44, 0.1);">
+                        <td colspan="3" style="padding: 12px; text-align: right; font-weight: 700; color: #ffffff;">
+                          🚚 Envío:
+                        </td>
+                        <td style="padding: 12px; text-align: right; font-weight: 700; color: #ffca2c;">
+                          Pendiente
+                        </td>
+                      </tr>
+                    </tfoot>
+                  </table>
 
-              <h3 style="color: #1a1a2e; border-bottom: 2px solid #f0f0f0; padding-bottom: 8px; margin-top: 24px;">Dirección de entrega</h3>
-              <p style="background: #f9f9f9; padding: 12px; border-radius: 6px; margin: 0;">
-                ${address.street} ${address.number}<br/>
-                ${address.city}, ${address.province}<br/>
-                CP: ${address.postal_code}
-              </p>
+                  <h3 style="color: #ffca2c; margin: 32px 0 16px 0; font-size: 18px; font-weight: 700; border-bottom: 2px solid rgba(255, 202, 44, 0.2); padding-bottom: 8px;">
+                    📍 Dirección de entrega
+                  </h3>
+                  <div style="background: #0a0a0a; border: 1px solid rgba(255, 255, 255, 0.08); padding: 20px; border-radius: 12px; margin: 0;">
+                    <p style="color: #ffffff; font-size: 16px; line-height: 1.8; margin: 0;">
+                      <strong>${address.street} ${address.number}</strong><br/>
+                      ${address.city}, ${address.province}<br/>
+                      <span style="color: #9ca3af;">CP:</span> <strong>${address.postal_code}</strong>
+                    </p>
+                  </div>
 
-              <div style="text-align: center; margin: 30px 0;">
-                <a href="${process.env.FRONTEND_URL}/admin/pedidos/${order.id}" 
-                   style="background: #1a1a2e; color: white; padding: 13px 28px; text-decoration: none; border-radius: 6px; font-weight: bold;">
-                  Ver orden y cotizar envío
-                </a>
+                  <center style="margin-top: 32px;">
+                    <a href="${process.env.FRONTEND_URL}/admin/pedidos/${order.id}" class="email-button">
+                      Ver orden y cotizar envío
+                    </a>
+                  </center>
+                </div>
+                
+                <div class="email-footer">
+                  <div class="email-logo">RIFLI</div>
+                  <p class="email-footer-text">Este es un email automático, por favor no respondas.</p>
+                  <p class="email-footer-text">&copy; ${new Date().getFullYear()} RIFLI. Todos los derechos reservados.</p>
+                </div>
               </div>
             </div>
-          </div>
-        </body>
-      </html>
-    `,
-        headers: {
-          'X-Entity-Ref-ID': new Date().getTime().toString(),
+          </body>
+        </html>
+      `,
+      headers: {
+        "X-Entity-Ref-ID": new Date().getTime().toString(),
+      },
+      tags: [
+        {
+          name: "click_tracking",
+          value: "false",
         },
-        tags: [
-          {
-            name: 'click_tracking',
-            value: 'false' // desactiva el click tracking 
-          }
-        ]
-  });
+      ],
+    });
 
-  if (error) throw new Error('Error al enviar email de nueva orden');
-  return data;
+    if (error) throw new Error("Error al enviar email de nueva orden");
+    console.log("✅ Email de nueva orden enviado:", data);
+    return data;
+  } catch (error) {
+    console.error("Error en sendAdminNewOrderEmail:", error);
+    throw error;
+  }
 };
