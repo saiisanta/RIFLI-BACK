@@ -389,6 +389,13 @@ export const deleteUser = async (req, res) => {
 
     // Guardar referencia al avatar antes de eliminar
     const avatarToDelete = user.avatar_url;
+    
+    await user.update({
+      email:           `deleted_${user.id}_${user.email}`,
+      document_number: user.document_number ? `deleted_${user.id}` : null,
+      is_active:       false,
+      password:        'DELETED',
+    });
 
     await user.destroy();
 
@@ -426,6 +433,17 @@ export const deleteOwnAccount = async (req, res) => {
 
     // Guardar referencia al avatar antes de eliminar
     const avatarToDelete = user.avatar_url;
+    
+    await user.update({
+      email:                      `deleted_${user.id}_${user.email}`,
+      is_active:                  false,
+      password:                   'DELETED',
+      avatar_url:                 null,
+      verification_token:         null,
+      verification_token_expires: null,
+      reset_password_token:       null,
+      reset_password_expires:     null,
+    });
 
     await user.destroy();
 
