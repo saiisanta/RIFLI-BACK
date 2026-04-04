@@ -27,6 +27,7 @@ import categoryRoutes from './routes/category.routes.js';
 import addressRoutes from './routes/address.routes.js';
 import notificationRoutes from './routes/notifications.routes.js';
 import orderRoutes from './routes/order.routes.js';
+import bankAccountRoutes from './routes/bankAccount.routes.js';
 
 const app = express();
 
@@ -58,6 +59,7 @@ app.use('/api/brands', brandRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/orders', orderRoutes);
+app.use('/api/bank-accounts', bankAccountRoutes);
 app.use('/uploads',  express.static(path.join(__dirname, '../public/uploads')));
 
 // Error handling middleware
