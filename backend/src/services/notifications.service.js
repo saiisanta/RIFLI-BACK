@@ -187,7 +187,7 @@ export const notifyOrderStatusChange = async (order) => {
     type: 'ORDER',
     title: config.title,
     message: config.message(order),
-    metadata: { orderId: order.id, orderNumber: order.order_number, status: order.status, link: `/pedidos/${order.id}` },
+    metadata: { orderId: order.id, orderNumber: order.order_number, status: order.status, link: `/shop` },
     sendEmail: config.sendEmail,
     emailPayload: config.sendEmail
       ? async () => {
@@ -255,7 +255,7 @@ export const notifyAdminProofUploaded = async (quote, paymentType) => {
       type: 'ADMIN',
       title: 'Nuevo comprobante de pago',
       message: `El cliente subió el comprobante de ${label} del presupuesto #${quote.quote_number}. Revisalo para aprobar o rechazar.`,
-      metadata: {  quoteNumber: quote.quote_number, paymentType, link: `/admin/quotes` },
+      metadata: {  quoteNumber: quote.quote_number, paymentType, link: `/admin` },
     })
   ));
 };
@@ -283,7 +283,7 @@ export const notifyAdminNewOrder = async (order) => {
       type:     'ADMIN',
       title:    'Nueva orden de compra',
       message:  `Se recibió la orden #${order.order_number} por $${Number(order.subtotal).toLocaleString('es-AR')}. Cotizá el envío a la brevedad.`,
-      metadata: { orderId: order.id, orderNumber: order.order_number, link: `/admin/pedidos/${order.id}` }
+      metadata: { orderId: order.id, orderNumber: order.order_number, link: `/admin/orders` }
     })
   ));
 
@@ -308,7 +308,7 @@ export const notifyOrderShippingQuoted = async (order) => {
     type:    'ORDER',
     title:   'Costo de envío disponible',
     message: `El costo de envío de tu orden #${order.order_number} fue calculado: $${Number(order.shipping_cost).toLocaleString('es-AR')}. Total final: $${Number(order.total).toLocaleString('es-AR')}. Ya podés abonar.`,
-    metadata: { orderId: order.id, orderNumber: order.order_number, status: order.status, link: `/pedidos/${order.id}` },
+    metadata: { orderId: order.id, orderNumber: order.order_number, status: order.status, link: `/shop` },
     sendEmail: true,
     emailPayload: async () => {
       const user = await User.findByPk(order.user_id, { attributes: ['email', 'first_name'] });

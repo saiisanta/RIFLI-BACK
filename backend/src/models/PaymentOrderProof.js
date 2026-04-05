@@ -31,8 +31,8 @@ const PaymentOrderProof = sequelize.define('PaymentOrderProof', {
 
   // Monto
   amount: {
-    type: DataTypes.DECIMAL(10, 2),
-    allowNull: false
+    type: DataTypes.DECIMAL(10, 4),
+    allowNull: true
   },
 
   // Comprobante de transferencia
