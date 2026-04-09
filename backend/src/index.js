@@ -14,6 +14,7 @@ const __dirname = dirname(__filename);
 dotenv.config();
 
 import { sequelize } from './models/index.js'; 
+import { generalLimiter } from './middlewares/rateLimit.middleware.js';
 
 // Importar Rutas
 import authRoutes from './routes/auth.routes.js';
@@ -46,6 +47,7 @@ app.use(cookieParser());
 app.use(morgan('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use('/api', generalLimiter);
 
 // Rutas
 app.use('/api/addresses', addressRoutes);

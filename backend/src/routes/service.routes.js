@@ -17,17 +17,18 @@ import {
 } from '../validations/service.validations.js';
 import { validateId } from '../validations/id.validation.js';
 import { validateServiceBasics } from '../middlewares/preValidation.middleware.js';
+import { generalLimiter, uploadAdminLimiter } from '../middlewares/rateLimit.middleware.js';
 
 const router = express.Router();
 
 // ========== Rutas Públicas ==========
-router.get('/', getAllServices);
-router.get('/:id', validateId, getServiceById);
+router.get('/', generalLimiter, getAllServices);
+router.get('/:id', generalLimiter, validateId, getServiceById);
 
 // ========== Rutas Protegidas ==========
-router.post('/', authenticateToken, authorizeRole('ADMIN'), uploadService, validateServiceBasics, validateCreateService, createService);
-router.put('/:id', authenticateToken, authorizeRole('ADMIN'), validateId, uploadService, validateServiceBasics, validateUpdateService, updateService);
-router.delete('/:id', authenticateToken, authorizeRole('ADMIN'), validateId, deleteService);
-router.patch('/reorder', authenticateToken, authorizeRole('ADMIN'), validateReorderServices, reorderServices);
+router.post('/', authenticateToken, authorizeRole('ADMIN'), uploadAdminLimiter, uploadService, validateServiceBasics, validateCreateService, createService);
+router.put('/:id', authenticateToken, authorizeRole('ADMIN'), uploadAdminLimiter, validateId, uploadService, validateServiceBasics, validateUpdateService, updateService);
+router.delete('/:id', authenticateToken, authorizeRole('ADMIN'), generalLimiter, validateId, deleteService);
+router.patch('/reorder', authenticateToken, authorizeRole('ADMIN'), generalLimiter, validateReorderServices, reorderServices);
 
 export default router;

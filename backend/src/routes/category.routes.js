@@ -12,16 +12,17 @@ import { uploadCategory } from '../middlewares/upload.middleware.js';
 import { validateCategory } from '../validations/category.validations.js';
 import { validateId } from '../validations/id.validation.js';
 import { validateCategoryParent } from '../middlewares/preValidation.middleware.js';
+import { generalLimiter, uploadAdminLimiter } from '../middlewares/rateLimit.middleware.js';
 
 const router = express.Router();
 
 // ========== Rutas públicas ==========
-router.get('/', getAllCategories);
-router.get('/:id', validateId, getCategoryById);
+router.get('/', generalLimiter, getAllCategories);
+router.get('/:id', generalLimiter, validateId, getCategoryById);
 
 // ========== Rutas de administrador ==========
-router.post('/', authenticateToken, authorizeRole('ADMIN'), uploadCategory, validateCategoryParent, validateCategory, createCategory);
-router.put('/:id', authenticateToken, authorizeRole('ADMIN'), uploadCategory, validateCategoryParent,validateId, validateCategory, updateCategory);
-router.delete('/:id', authenticateToken, authorizeRole('ADMIN'), validateId, deleteCategory);
+router.post('/', authenticateToken, authorizeRole('ADMIN'), uploadAdminLimiter, uploadCategory, validateCategoryParent, validateCategory, createCategory);
+router.put('/:id', authenticateToken, authorizeRole('ADMIN'), uploadAdminLimiter, uploadCategory, validateCategoryParent,validateId, validateCategory, updateCategory);
+router.delete('/:id', authenticateToken, authorizeRole('ADMIN'), generalLimiter, validateId, deleteCategory);
 
 export default router;

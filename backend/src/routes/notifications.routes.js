@@ -10,14 +10,15 @@ import {
 import { authenticateToken } from '../middlewares/auth.middleware.js';
 import { validateId } from '../validations/id.validation.js';
 import { validateGetNotifications } from '../validations/notifications.validations.js';
+import { generalLimiter } from '../middlewares/rateLimit.middleware.js';
 
 const router = express.Router();
 
 // ========== Rutas del usuario autenticado ==========
-router.get('/',             authenticateToken, validateGetNotifications, getNotifications);
-router.get('/unread-count', authenticateToken, getUnreadCount);
-router.patch('/read-all',   authenticateToken, markAllAsRead);
-router.patch('/:id/read',   authenticateToken, validateId, markAsRead);
-router.delete('/:id',       authenticateToken, validateId, deleteNotification);
+router.get('/', generalLimiter, authenticateToken, validateGetNotifications, getNotifications);
+router.get('/unread-count', generalLimiter, authenticateToken, getUnreadCount);
+router.patch('/read-all', generalLimiter, authenticateToken, markAllAsRead);
+router.patch('/:id/read', generalLimiter, authenticateToken, validateId, markAsRead);
+router.delete('/:id', generalLimiter, authenticateToken, validateId, deleteNotification);
 
 export default router;
