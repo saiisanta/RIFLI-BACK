@@ -9,7 +9,7 @@ const rateLimitHandler = (req, res) => {
 
 export const generalLimiter = rateLimit({
   windowMs:        15 * 60 * 1000,
-  max:             100,
+  max:             200,
   standardHeaders: true,
   legacyHeaders:   false,
   handler:         rateLimitHandler
