@@ -24,11 +24,11 @@ const sequelize = new Sequelize(
         require: true,
         rejectUnauthorized: false
       } : false,
-      timezone: 'Z'
+      timezone: '-03:00'
     },
     pool: {
-      max: 5,
-      min: 0,
+      max: 10,
+      min: 2,
       acquire: 30000,
       idle: 10000
     },

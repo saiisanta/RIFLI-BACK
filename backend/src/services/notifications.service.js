@@ -276,7 +276,6 @@ export const notifyAdminNewQuote = async (quote) => {
 export const notifyAdminNewOrder = async (order) => {
   const adminIds = await getAdminIds();
 
-  // Notificación in-app para cada admin
   await Promise.all(adminIds.map(adminId =>
     createNotification({
       userId:   adminId,
@@ -287,15 +286,16 @@ export const notifyAdminNewOrder = async (order) => {
     })
   ));
 
-  // Email al admin
   try {
     const admins = await User.findAll({
       where: { role: 'ADMIN' },
       attributes: ['email', 'first_name']
     });
 
+    const plainOrder = order.get ? order.get({ plain: true }) : order;
+
     await Promise.all(admins.map(admin =>
-      sendAdminNewOrderEmail({ to: admin.email, userName: admin.first_name, order })
+      sendAdminNewOrderEmail({ to: admin.email, userName: admin.first_name, order: plainOrder })
     ));
   } catch (err) {
     console.error('❌ Email de nueva orden fallido:', err.message);

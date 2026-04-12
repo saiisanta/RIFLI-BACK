@@ -23,7 +23,11 @@ const Order = sequelize.define(
       type: DataTypes.INTEGER,
       references: { model: "addresses", key: "id" },
     },
-
+    shipping_address_snapshot: {
+      type: DataTypes.JSON,
+      allowNull: true,
+      comment: 'Snapshot de la dirección al momento de la orden'
+    },
     // Items (snapshot del carrito)
     items: {
       type: DataTypes.JSON,
@@ -102,6 +106,26 @@ const Order = sequelize.define(
     internal_notes: {
       type: DataTypes.TEXT,
     },
+    tracking_number: {
+      type: DataTypes.STRING(100),
+      allowNull: true
+    },
+    shipped_at: {
+      type: DataTypes.DATE,
+      allowNull: true
+    },
+    delivered_at: {
+      type: DataTypes.DATE,
+      allowNull: true
+    },
+    cancelled_at: {
+      type: DataTypes.DATE,
+      allowNull: true
+    },
+    cancellation_reason: {
+      type: DataTypes.TEXT,
+      allowNull: true
+    }
   },
   {
     tableName: "orders",
