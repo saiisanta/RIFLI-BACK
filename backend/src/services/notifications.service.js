@@ -1,7 +1,7 @@
 // services/notification.service.js
 import Notification from '../models/Notification.js';
 import User from '../models/User.js';
-import { sendQuoteStatusEmail, sendPaymentStatusEmail, sendOrderStatusEmail } from './email.service.js';
+import { sendQuoteStatusEmail, sendPaymentStatusEmail, sendOrderStatusEmail, sendAdminNewOrderEmail} from './email.service.js';
 
 // Mapas de traducción: status → texto de notificación 
 
