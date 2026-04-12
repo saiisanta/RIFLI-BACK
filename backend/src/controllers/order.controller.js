@@ -79,7 +79,7 @@ export const createOrder = async (req, res) => {
     let subtotal = 0;
 
     for (const item of cart.items) {
-      const product = await Product.findByPk(item.productId, { transaction });
+      const product = await Product.findByPk(item.product_id, { transaction });
 
       if (!product || !product.is_active) {
         await transaction.rollback();
@@ -424,7 +424,7 @@ export const reviewOrderProof = async (req, res) => {
 
     if (action === "approve") {
       for (const item of order.items) {
-        const product = await Product.findByPk(item.productId, { transaction });
+        const product = await Product.findByPk(item.product_id, { transaction });
         if (!product) {
           await transaction.rollback();
           return res

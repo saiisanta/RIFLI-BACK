@@ -1,10 +1,12 @@
 // controllers/cart.controller.js
-import Cart from '../models/Cart.js';
-import Product from '../models/Product.js';
+import Cart from "../models/Cart.js";
+import Product from "../models/Product.js";
 
 // Obtener o crear carrito del usuario
 const getOrCreateCart = async (userId) => {
-  let cart = await Cart.findOne({ where: { user_id: userId, is_active: true } });
+  let cart = await Cart.findOne({
+    where: { user_id: userId, is_active: true },
+  });
   if (!cart) {
     cart = await Cart.create({ user_id: userId, items: [], subtotal: 0 });
   }
@@ -22,7 +24,7 @@ export const getCart = async (req, res) => {
     res.json(cart);
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: 'Error al obtener el carrito' });
+    res.status(500).json({ error: "Error al obtener el carrito" });
   }
 };
 
@@ -33,19 +35,21 @@ export const addItem = async (req, res) => {
 
     const product = await Product.findByPk(product_id);
     if (!product || !product.is_active) {
-      return res.status(404).json({ error: 'Producto no encontrado o no disponible' });
+      return res
+        .status(404)
+        .json({ error: "Producto no encontrado o no disponible" });
     }
 
     if (product.stock < quantity) {
       return res.status(400).json({
-        error: `Stock insuficiente. Disponible: ${product.stock}`
+        error: `Stock insuficiente. Disponible: ${product.stock}`,
       });
     }
 
     const cart = await getOrCreateCart(req.user.id);
     const items = [...cart.items];
 
-    const existingIndex = items.findIndex(i => i.productId === product_id);
+    const existingIndex = items.findIndex((i) => i.product_id === product_id);
 
     if (existingIndex >= 0) {
       // Ya existe — sumar cantidad
@@ -53,22 +57,30 @@ export const addItem = async (req, res) => {
 
       if (product.stock < newQuantity) {
         return res.status(400).json({
-          error: `Stock insuficiente. Disponible: ${product.stock}`
+          error: `Stock insuficiente. Disponible: ${product.stock}`,
         });
       }
 
-      items[existingIndex].quantity = newQuantity;
-      items[existingIndex].subtotal = Number(product.price) * newQuantity;
+      const items = cart.items.map((item) => {
+        if (item.product_id === product_id) {
+          return {
+            ...item,
+            quantity: newQuantity,
+            subtotal: Number(product.price) * newQuantity,
+          };
+        }
+        return item;
+      });
     } else {
       // Nuevo item
       items.push({
-        productId:  product.id,
-        name:       product.name,
-        sku:        product.sku || null,
+        product_id: product.id,
+        name: product.name,
+        sku: product.sku || null,
         quantity,
-        price:      Number(product.price),
-        subtotal:   Number(product.price) * quantity,
-        imageUrl: product.main_image || product.images?.[0] || null
+        price: Number(product.price),
+        subtotal: Number(product.price) * quantity,
+        imageUrl: product.main_image || product.images?.[0] || null,
       });
     }
 
@@ -77,7 +89,7 @@ export const addItem = async (req, res) => {
     res.json(cart);
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: 'Error al agregar producto' });
+    res.status(500).json({ error: "Error al agregar producto" });
   }
 };
 
@@ -87,35 +99,37 @@ export const updateItem = async (req, res) => {
     const { product_id, quantity } = req.body;
 
     if (quantity <= 0) {
-      return res.status(400).json({ error: 'La cantidad debe ser mayor a 0' });
+      return res.status(400).json({ error: "La cantidad debe ser mayor a 0" });
     }
 
     const product = await Product.findByPk(product_id);
-    if (!product) return res.status(404).json({ error: 'Producto no encontrado' });
+    if (!product)
+      return res.status(404).json({ error: "Producto no encontrado" });
 
     if (product.stock < quantity) {
       return res.status(400).json({
-        error: `Stock insuficiente. Disponible: ${product.stock}`
+        error: `Stock insuficiente. Disponible: ${product.stock}`,
       });
     }
 
     const cart = await getOrCreateCart(req.user.id);
-    const items = [...cart.items];
-
-    const index = items.findIndex(i => i.productId === product_id);
-    if (index === -1) {
-      return res.status(404).json({ error: 'Producto no está en el carrito' });
-    }
-
-    items[index].quantity = quantity;
-    items[index].subtotal = Number(product.price) * quantity;
+    const items = cart.items.map((item) => {
+      if (item.product_id === product_id) {
+        return {
+          ...item,
+          quantity,
+          subtotal: Number(product.price) * quantity,
+        };
+      }
+      return item;
+    });
 
     await cart.update({ items, subtotal: recalculateSubtotal(items) });
 
     res.json(cart);
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: 'Error al actualizar producto' });
+    res.status(500).json({ error: "Error al actualizar producto" });
   }
 };
 
@@ -125,14 +139,14 @@ export const removeItem = async (req, res) => {
     const { product_id } = req.params;
 
     const cart = await getOrCreateCart(req.user.id);
-    const items = cart.items.filter(i => i.productId !== Number(product_id));
+    const items = cart.items.filter((i) => i.product_id !== Number(product_id));
 
     await cart.update({ items, subtotal: recalculateSubtotal(items) });
 
     res.json(cart);
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: 'Error al eliminar producto' });
+    res.status(500).json({ error: "Error al eliminar producto" });
   }
 };
 
@@ -141,9 +155,9 @@ export const clearCart = async (req, res) => {
   try {
     const cart = await getOrCreateCart(req.user.id);
     await cart.update({ items: [], subtotal: 0 });
-    res.json({ message: 'Carrito vaciado', cart });
+    res.json({ message: "Carrito vaciado", cart });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: 'Error al vaciar el carrito' });
+    res.status(500).json({ error: "Error al vaciar el carrito" });
   }
 };
