@@ -205,7 +205,7 @@ const emailBaseStyles = `
 
 // Mail de recuperación de contraseña
 export const sendPasswordResetEmail = async ({ to, resetToken }) => {
-  const resetUrl = `${process.env.FRONTEND_URL}reset-password/${resetToken}`;
+  const resetUrl = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
 
   try {
     const { data, error } = await resend.emails.send({
@@ -293,7 +293,7 @@ export const sendVerificationEmail = async ({
   verificationToken,
   userName,
 }) => {
-  const verificationUrl = `${process.env.FRONTEND_URL}verify-email/${verificationToken}`;
+  const verificationUrl = `${process.env.FRONTEND_URL}/verify-email/${verificationToken}`;
 
   try {
     const { data, error } = await resend.emails.send({
@@ -621,7 +621,7 @@ export const sendOrderStatusEmail = async ({ to, userName, order, title }) => {
                   </table>
                   
                   <center>
-                    <a href="${process.env.FRONTEND_URL}/pedidos/${order.id}" class="email-button">Ver mi pedido</a>
+                    <a href="${process.env.FRONTEND_URL}/shop" class="email-button">Ver mi pedido</a>
                   </center>
                 </div>
                 
@@ -757,7 +757,7 @@ export const sendAdminNewOrderEmail = async ({ to, userName, order }) => {
                   </div>
 
                   <center style="margin-top: 32px;">
-                    <a href="${process.env.FRONTEND_URL}/admin/pedidos/${order.id}" class="email-button">
+                    <a href="${process.env.FRONTEND_URL}/admin/orders" class="email-button">
                       Ver orden y cotizar envío
                     </a>
                   </center>
