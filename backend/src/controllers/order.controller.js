@@ -17,6 +17,7 @@ import {
   notifyAdminProofUploaded,
   notifyOrderShippingQuoted,
 } from "../services/notifications.service.js";
+import { getDiscountedPrice } from "../utils/price.js";
 
 const deleteFile = async (filePath) => {
   if (!filePath) return;
@@ -49,6 +50,18 @@ export const createOrder = async (req, res) => {
       return res.status(400).json({ error: "El carrito está vacío" });
     }
 
+    const user = await User.findByPk(req.user.id, {
+      attributes: ['id', 'phone'],
+      transaction
+    });
+
+    if (!user.phone) {
+      await transaction.rollback();
+      return res.status(400).json({
+        error: 'Necesitás agregar un número de teléfono a tu perfil antes de realizar una compra.',
+        code: 'PHONE_REQUIRED'
+      });
+    }
     let resolvedAddressId = address_id;
 
     if (!resolvedAddressId) {
@@ -83,30 +96,33 @@ export const createOrder = async (req, res) => {
 
       if (!product || !product.is_active) {
         await transaction.rollback();
-        return res
-          .status(400)
-          .json({ error: `El producto "${item.name}" ya no está disponible` });
+        return res.status(400).json({ error: `El producto "${item.name}" ya no está disponible` });
       }
 
       if (product.stock < item.quantity) {
         await transaction.rollback();
         return res.status(400).json({
-          error: `Stock insuficiente para "${product.name}". Disponible: ${product.stock}`,
+          error: `Stock insuficiente para "${product.name}". Disponible: ${product.stock}`
         });
       }
 
-      const currentPrice = Number(product.price);
-      const itemSubtotal = currentPrice * item.quantity;
+      // ✅ Precio final con descuento al momento de la compra
+      const originalPrice  = Number(product.price);
+      const discountPct    = Number(product.discount_percentage) || 0;
+      const finalPrice     = getDiscountedPrice(originalPrice, discountPct);
+      const itemSubtotal   = finalPrice * item.quantity;
       subtotal += itemSubtotal;
 
       itemsSnapshot.push({
-        productId: product.id,
-        name: product.name,
-        sku: product.sku || null,
-        quantity: item.quantity,
-        unit_price: currentPrice,
-        subtotal: itemSubtotal,
-        imageUrl: item.imageUrl || null,
+        productId:           product.id,
+        name:                product.name,
+        sku:                 product.sku || null,
+        quantity:            item.quantity,
+        original_price:      originalPrice,   // para auditoría
+        discount_percentage: discountPct,     // para mostrar en el resumen
+        unit_price:          finalPrice,      // precio que pagó efectivamente
+        subtotal:            itemSubtotal,
+        imageUrl:            product.main_image || product.images?.[0] || null,
       });
     }
 

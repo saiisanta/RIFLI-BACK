@@ -2,6 +2,8 @@
 import Cart from "../models/Cart.js";
 import Product from "../models/Product.js";
 
+import { getDiscountedPrice } from '../utils/price.js';
+
 // Obtener o crear carrito del usuario
 const getOrCreateCart = async (userId) => {
   let cart = await Cart.findOne({
@@ -35,16 +37,15 @@ export const addItem = async (req, res) => {
 
     const product = await Product.findByPk(product_id);
     if (!product || !product.is_active) {
-      return res
-        .status(404)
-        .json({ error: "Producto no encontrado o no disponible" });
+      return res.status(404).json({ error: 'Producto no encontrado o no disponible' });
     }
 
     if (product.stock < quantity) {
-      return res.status(400).json({
-        error: `Stock insuficiente. Disponible: ${product.stock}`,
-      });
+      return res.status(400).json({ error: `Stock insuficiente. Disponible: ${product.stock}` });
     }
+
+    // Precio con descuento aplicado
+    const finalPrice = getDiscountedPrice(product.price, product.discount_percentage);
 
     const cart = await getOrCreateCart(req.user.id);
     const items = [...cart.items];
@@ -52,44 +53,33 @@ export const addItem = async (req, res) => {
     const existingIndex = items.findIndex((i) => i.product_id === product_id);
 
     if (existingIndex >= 0) {
-      // Ya existe — sumar cantidad
       const newQuantity = items[existingIndex].quantity + quantity;
 
       if (product.stock < newQuantity) {
-        return res.status(400).json({
-          error: `Stock insuficiente. Disponible: ${product.stock}`,
-        });
+        return res.status(400).json({ error: `Stock insuficiente. Disponible: ${product.stock}` });
       }
 
-      const items = cart.items.map((item) => {
-        if (item.product_id === product_id) {
-          return {
-            ...item,
-            quantity: newQuantity,
-            subtotal: Number(product.price) * newQuantity,
-          };
-        }
-        return item;
-      });
+      items[existingIndex].quantity = newQuantity;
+      items[existingIndex].subtotal = finalPrice * newQuantity;
     } else {
-      // Nuevo item
       items.push({
-        product_id: product.id,
-        name: product.name,
-        sku: product.sku || null,
+        product_id:          product.id,
+        name:                product.name,
+        sku:                 product.sku || null,
         quantity,
-        price: Number(product.price),
-        subtotal: Number(product.price) * quantity,
-        imageUrl: product.main_image || product.images?.[0] || null,
+        original_price:      Number(product.price),        // precio sin descuento
+        discount_percentage: Number(product.discount_percentage) || 0,
+        price:               finalPrice,                   // precio con descuento
+        subtotal:            finalPrice * quantity,
+        imageUrl:            product.main_image || product.images?.[0] || null,
       });
     }
 
     await cart.update({ items, subtotal: recalculateSubtotal(items) });
-
     res.json(cart);
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: "Error al agregar producto" });
+    res.status(500).json({ error: 'Error al agregar producto' });
   }
 };
 
@@ -98,38 +88,34 @@ export const updateItem = async (req, res) => {
   try {
     const { product_id, quantity } = req.body;
 
-    if (quantity <= 0) {
-      return res.status(400).json({ error: "La cantidad debe ser mayor a 0" });
-    }
+    if (quantity <= 0) return res.status(400).json({ error: 'La cantidad debe ser mayor a 0' });
 
     const product = await Product.findByPk(product_id);
-    if (!product)
-      return res.status(404).json({ error: "Producto no encontrado" });
+    if (!product) return res.status(404).json({ error: 'Producto no encontrado' });
 
     if (product.stock < quantity) {
-      return res.status(400).json({
-        error: `Stock insuficiente. Disponible: ${product.stock}`,
-      });
+      return res.status(400).json({ error: `Stock insuficiente. Disponible: ${product.stock}` });
     }
 
     const cart = await getOrCreateCart(req.user.id);
+
     const items = cart.items.map((item) => {
       if (item.product_id === product_id) {
+        // Recalcular con el precio que ya tiene el item (ya tiene descuento)
         return {
           ...item,
           quantity,
-          subtotal: Number(product.price) * quantity,
+          subtotal: item.price * quantity,
         };
       }
       return item;
     });
 
     await cart.update({ items, subtotal: recalculateSubtotal(items) });
-
     res.json(cart);
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: "Error al actualizar producto" });
+    res.status(500).json({ error: 'Error al actualizar producto' });
   }
 };
 
