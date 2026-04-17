@@ -17,7 +17,7 @@ const getOrCreateCart = async (userId) => {
 
 // Recalcular subtotal desde los items
 const recalculateSubtotal = (items) =>
-  items.reduce((sum, item) => sum + item.subtotal, 0);
+  Number(items.reduce((sum, item) => sum + item.subtotal, 0).toFixed(2));
 
 // ========== GET CARRITO ==========
 export const getCart = async (req, res) => {
@@ -60,7 +60,7 @@ export const addItem = async (req, res) => {
       }
 
       items[existingIndex].quantity = newQuantity;
-      items[existingIndex].subtotal = finalPrice * newQuantity;
+      items[existingIndex].subtotal = Number((finalPrice * newQuantity).toFixed(2));
     } else {
       items.push({
         product_id:          product.id,
@@ -70,7 +70,7 @@ export const addItem = async (req, res) => {
         original_price:      Number(product.price),        // precio sin descuento
         discount_percentage: Number(product.discount_percentage) || 0,
         price:               finalPrice,                   // precio con descuento
-        subtotal:            finalPrice * quantity,
+        subtotal:            Number((finalPrice * quantity).toFixed(2)),
         imageUrl:            product.main_image || product.images?.[0] || null,
       });
     }
